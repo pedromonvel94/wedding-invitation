@@ -1,5 +1,5 @@
-import express, { Application} from 'express';
-import routes from './routes';
+import express, { Application } from "express";
+import routes from "./routes/index.js";
 
 // Inicializar la aplicación Express
 const app: Application = express();
@@ -8,6 +8,6 @@ const app: Application = express();
 app.use(express.json());
 
 // Ejemplo de ruta para verificar el estado del servidor
-app.use('/api', routes);
+app.use("/api", routes);
 
 export default app;

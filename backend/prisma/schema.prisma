@@ -11,3 +11,83 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+//ENUMS
+enum ConfirmationStatus{
+	CONFIRMED
+	PENDING
+	DECLINED
+}
+
+enum DeliveryChannel{
+	EMAIL
+	WHATSAPP
+}
+
+enum DeliveryStatus{
+	PENDING
+	SENT
+	FAILED
+}
+
+//MODELOS
+model Admin {
+  idAdmin Int @id @default(autoincrement())
+  name String
+  email String   @unique
+  password String
+  active Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Invitation {
+	idInvitation Int @id @default(autoincrement())
+	familyName String
+	
+	guests Guest[] 
+	invitationDeliveries InvitationDelivery[] 
+	createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Guest {
+  idGuest Int @id @default(autoincrement())
+  name String 
+  phoneNumber String @unique
+  email String @unique
+
+  invitationId Int
+  invitation Invitation @relation(fields: [invitationId], references: [idInvitation])
+  
+  confirmation Confirmation?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Confirmation{
+	idConfirmation Int @id @default(autoincrement())
+	status ConfirmationStatus @default(PENDING)
+	responseDate DateTime?
+
+  guestId Int @unique
+  guest Guest @relation(fields: [guestId], references: [idGuest])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model InvitationDelivery{
+	idDelivery Int @id @default(autoincrement())
+	
+	channel DeliveryChannel?
+	status DeliveryStatus @default(PENDING)
+	
+	invitationId Int
+  invitation Invitation @relation(fields: [invitationId], references: [idInvitation])
+	
+	sentAt DateTime?
+	createdAt DateTime @default(now())
+	updatedAt DateTime @updatedAt
+}

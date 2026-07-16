@@ -1,5 +1,5 @@
 import express, { Application } from "express";
-import routes from "./routes/index.js";
+import healthRoutes from "./routes/health.routes.js";
 
 // Inicializar la aplicación Express
 const app: Application = express();
@@ -7,7 +7,7 @@ const app: Application = express();
 // Middlewares globales
 app.use(express.json());
 
-// Ejemplo de ruta para verificar el estado del servidor
-app.use("/api", routes);
+// Aqui uso las rutas para que express las reconozca y pueda usarlas
+app.use(healthRoutes);
 
 export default app;

@@ -4,21 +4,28 @@ async function loginUser(
   email: string,
   password: string,
 ): Promise<{ success: boolean; message: string; token?: string }> {
-  const adminEmail = await prisma.admin.findUnique({
+  const admin = await prisma.admin.findUnique({
     where: { email },
   });
 
-  if (!adminEmail) {
+  if (!admin) {
     return {
       success: false,
       message: "Usuario no encontrado",
     };
   }
 
-  if (adminEmail.password !== password) {
+  if (admin.password !== password) {
     return {
       success: false,
       message: "Contraseña incorrecta",
+    };
+  }
+
+  if (!admin.active) {
+    return {
+      success: false,
+      message: "Usuario deshabilitado",
     };
   }
 
@@ -27,3 +34,5 @@ async function loginUser(
     message: "Login exitoso",
   };
 }
+
+export default { loginUser };

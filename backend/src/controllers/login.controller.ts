@@ -8,6 +8,7 @@ async function login(req: Request, res: Response) {
     const result = await loginService.loginUser(email, password);
     res.status(result.success ? 200 : 401).json(result);
   } catch (error) {
+    console.error("Error en login:", error);
     res.status(500).json({ success: false, message: "Error en el servidor" });
   }
 }

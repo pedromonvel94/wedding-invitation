@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import { comparePassword } from "../utils/password.js";
 
 async function loginUser(
   email: string,
@@ -15,7 +16,9 @@ async function loginUser(
     };
   }
 
-  if (admin.password !== password) {
+  const isPasswordValid = await comparePassword(password, admin.password);
+
+  if (!isPasswordValid) {
     return {
       success: false,
       message: "Contraseña incorrecta",
@@ -36,3 +39,4 @@ async function loginUser(
 }
 
 export default { loginUser };
+

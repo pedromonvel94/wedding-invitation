@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import type { ConfirmationStatus } from "../generated/prisma/client.js";
 import confirmationService from "../services/confirmation.service.js";
 
@@ -6,7 +6,11 @@ type GuestIdParams = {
   guestId: string;
 };
 
-async function createConfirmation(req: Request, res: Response) {
+async function createConfirmation(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const {
     guestId,
     status,
@@ -26,16 +30,14 @@ async function createConfirmation(req: Request, res: Response) {
 
     res.status(result.success ? 200 : 400).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 
 async function getConfirmationByGuestId(
   req: Request<GuestIdParams>,
   res: Response,
+  next: NextFunction,
 ) {
   const { guestId } = req.params;
 
@@ -46,14 +48,15 @@ async function getConfirmationByGuestId(
 
     res.status(result.success ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 
-async function updateConfirmation(req: Request<GuestIdParams>, res: Response) {
+async function updateConfirmation(
+  req: Request<GuestIdParams>,
+  res: Response,
+  next: NextFunction,
+) {
   const { guestId } = req.params;
 
   const {
@@ -73,14 +76,15 @@ async function updateConfirmation(req: Request<GuestIdParams>, res: Response) {
 
     res.status(result.success ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 
-async function deleteConfirmation(req: Request<GuestIdParams>, res: Response) {
+async function deleteConfirmation(
+  req: Request<GuestIdParams>,
+  res: Response,
+  next: NextFunction,
+) {
   const { guestId } = req.params;
 
   try {
@@ -90,10 +94,7 @@ async function deleteConfirmation(req: Request<GuestIdParams>, res: Response) {
 
     res.status(result.success ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 

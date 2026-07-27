@@ -1,2 +1,14 @@
 node_modules/
 .env
+
+## Diagramas  
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.drawio
+*.pdf
+
+## Prompts
+master-prompt.md

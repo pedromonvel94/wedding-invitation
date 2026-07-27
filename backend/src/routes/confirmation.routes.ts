@@ -1,7 +1,10 @@
 import { Router } from "express";
 import confirmationController from "../controllers/confirmation.controller.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
 
 const confirmationRouter = Router();
+
+confirmationRouter.use(authenticateToken);
 
 confirmationRouter.post(
   "/confirmations",

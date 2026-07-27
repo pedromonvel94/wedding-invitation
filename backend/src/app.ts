@@ -5,6 +5,7 @@ import invitationRoutes from "./routes/invitation.routes.js";
 import guestRoutes from "./routes/guest.routes.js";
 import confirmationRoutes from "./routes/confirmation.routes.js";
 import invitationDeliveryRoutes from "./routes/invitation-delivery.routes.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 // Inicializar la aplicación Express
 const app: Application = express();
@@ -21,5 +22,8 @@ app.use("/api", invitationRoutes);
 app.use("/api", guestRoutes);
 app.use("/api", confirmationRoutes);
 app.use("/api", invitationDeliveryRoutes);
+
+// Middleware de manejo de errores centralizado
+app.use(errorHandler);
 
 export default app;

@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import invitationService from "../services/invitation.service.js";
 
 type InvitationParams = {
@@ -9,20 +9,25 @@ type InvitationIdParams = {
   idInvitation: string;
 };
 
-async function createInvitation(req: Request, res: Response) {
+async function createInvitation(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { familyName } = req.body;
 
   try {
     const result = await invitationService.createInvitation(familyName);
     res.status(result.success ? 200 : 400).json(result);
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error en el servidor" });
+    next(error);
   }
 }
 
 async function getInvitationByFamilyName(
   req: Request<InvitationParams>,
   res: Response,
+  next: NextFunction,
 ) {
   const { familyName } = req.params;
 
@@ -31,13 +36,14 @@ async function getInvitationByFamilyName(
       await invitationService.getInvitationByFamilyName(familyName);
     res.status(result.success ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({ success: false, message: "Error en el servidor" });
+    next(error);
   }
 }
 
 async function getInvitationById(
   req: Request<InvitationIdParams>,
   res: Response,
+  next: NextFunction,
 ) {
   const { idInvitation } = req.params;
 
@@ -48,16 +54,14 @@ async function getInvitationById(
 
     res.status(result.success ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 
 async function updateInvitation(
   req: Request<InvitationIdParams>,
   res: Response,
+  next: NextFunction,
 ) {
   const { idInvitation } = req.params;
   const { familyName } = req.body;
@@ -70,16 +74,14 @@ async function updateInvitation(
 
     res.status(result.success ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 
 async function deleteInvitation(
   req: Request<InvitationIdParams>,
   res: Response,
+  next: NextFunction,
 ) {
   const { idInvitation } = req.params;
 
@@ -90,10 +92,7 @@ async function deleteInvitation(
 
     res.status(result.success ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 

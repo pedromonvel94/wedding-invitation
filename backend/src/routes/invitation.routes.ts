@@ -1,7 +1,10 @@
 import { Router } from "express";
 import invitationController from "../controllers/invitation.controller.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
 
 const invitationRouter = Router();
+
+invitationRouter.use(authenticateToken);
 
 invitationRouter.post("/invitations", invitationController.createInvitation);
 

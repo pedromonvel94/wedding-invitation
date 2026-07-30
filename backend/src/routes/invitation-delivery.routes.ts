@@ -1,7 +1,10 @@
 import { Router } from "express";
 import invitationDeliveryController from "../controllers/invitation-delivery.controller.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
 
 const invitationDeliveryRouter = Router();
+
+invitationDeliveryRouter.use(authenticateToken);
 
 invitationDeliveryRouter.post(
   "/invitation-deliveries",

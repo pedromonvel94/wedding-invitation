@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import type {
   DeliveryChannel,
   DeliveryStatus,
@@ -13,7 +13,11 @@ type InvitationIdParams = {
   idInvitation: string;
 };
 
-async function createInvitationDelivery(req: Request, res: Response) {
+async function createInvitationDelivery(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const {
     invitationId,
     channel,
@@ -35,17 +39,15 @@ async function createInvitationDelivery(req: Request, res: Response) {
     );
 
     res.status(result.success ? 200 : 400).json(result);
-  } catch {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+  } catch (error) {
+    next(error);
   }
 }
 
 async function getInvitationDeliveryById(
   req: Request<DeliveryIdParams>,
   res: Response,
+  next: NextFunction,
 ) {
   const { idDelivery } = req.params;
 
@@ -55,17 +57,15 @@ async function getInvitationDeliveryById(
     );
 
     res.status(result.success ? 200 : 404).json(result);
-  } catch {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+  } catch (error) {
+    next(error);
   }
 }
 
 async function getInvitationDeliveriesByInvitation(
   req: Request<InvitationIdParams>,
   res: Response,
+  next: NextFunction,
 ) {
   const { idInvitation } = req.params;
 
@@ -76,17 +76,15 @@ async function getInvitationDeliveriesByInvitation(
       );
 
     res.status(result.success ? 200 : 404).json(result);
-  } catch {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+  } catch (error) {
+    next(error);
   }
 }
 
 async function updateInvitationDelivery(
   req: Request<DeliveryIdParams>,
   res: Response,
+  next: NextFunction,
 ) {
   const { idDelivery } = req.params;
 
@@ -109,17 +107,15 @@ async function updateInvitationDelivery(
     );
 
     res.status(result.success ? 200 : 404).json(result);
-  } catch {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+  } catch (error) {
+    next(error);
   }
 }
 
 async function deleteInvitationDelivery(
   req: Request<DeliveryIdParams>,
   res: Response,
+  next: NextFunction,
 ) {
   const { idDelivery } = req.params;
 
@@ -129,11 +125,8 @@ async function deleteInvitationDelivery(
     );
 
     res.status(result.success ? 200 : 404).json(result);
-  } catch {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+  } catch (error) {
+    next(error);
   }
 }
 

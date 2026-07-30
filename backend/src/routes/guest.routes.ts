@@ -1,7 +1,10 @@
 import { Router } from "express";
 import guestController from "../controllers/guest.controller.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
 
 const guestRouter = Router();
+
+guestRouter.use(authenticateToken);
 
 guestRouter.post("/guests", guestController.createGuest);
 

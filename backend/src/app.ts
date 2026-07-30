@@ -5,11 +5,20 @@ import invitationRoutes from "./routes/invitation.routes.js";
 import guestRoutes from "./routes/guest.routes.js";
 import confirmationRoutes from "./routes/confirmation.routes.js";
 import invitationDeliveryRoutes from "./routes/invitation-delivery.routes.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
+import cors from "cors";
+
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
 // Inicializar la aplicación Express
 const app: Application = express();
 
 // Middlewares globales
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Rutas públicas (sin prefix /api)
@@ -21,5 +30,8 @@ app.use("/api", invitationRoutes);
 app.use("/api", guestRoutes);
 app.use("/api", confirmationRoutes);
 app.use("/api", invitationDeliveryRoutes);
+
+// Middleware de manejo de errores centralizado
+app.use(errorHandler);
 
 export default app;

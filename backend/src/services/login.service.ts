@@ -1,5 +1,6 @@
 import prisma from "../config/prisma.js";
 import { comparePassword } from "../utils/password.js";
+import { generateToken } from "../utils/jwt.js";
 
 async function loginUser(
   email: string,
@@ -32,11 +33,17 @@ async function loginUser(
     };
   }
 
+  const token = generateToken({
+    idAdmin: admin.idAdmin,
+    email: admin.email,
+    name: admin.name,
+  });
+
   return {
     success: true,
     message: "Login exitoso",
+    token,
   };
 }
 
 export default { loginUser };
-

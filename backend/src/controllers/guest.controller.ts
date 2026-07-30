@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import guestService from "../services/guest.service.js";
 
 type GuestIdParams = {
@@ -9,7 +9,7 @@ type InvitationIdParams = {
   idInvitation: string;
 };
 
-async function createGuest(req: Request, res: Response) {
+async function createGuest(req: Request, res: Response, next: NextFunction) {
   const { name, phoneNumber, email, invitationId } = req.body;
 
   try {
@@ -22,14 +22,15 @@ async function createGuest(req: Request, res: Response) {
 
     res.status(result.success ? 200 : 400).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 
-async function getGuestById(req: Request<GuestIdParams>, res: Response) {
+async function getGuestById(
+  req: Request<GuestIdParams>,
+  res: Response,
+  next: NextFunction,
+) {
   const { idGuest } = req.params;
 
   try {
@@ -37,16 +38,14 @@ async function getGuestById(req: Request<GuestIdParams>, res: Response) {
 
     res.status(result.success ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 
 async function getGuestsByInvitation(
   req: Request<InvitationIdParams>,
   res: Response,
+  next: NextFunction,
 ) {
   const { idInvitation } = req.params;
 
@@ -57,14 +56,15 @@ async function getGuestsByInvitation(
 
     res.status(result.success ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 
-async function updateGuest(req: Request<GuestIdParams>, res: Response) {
+async function updateGuest(
+  req: Request<GuestIdParams>,
+  res: Response,
+  next: NextFunction,
+) {
   const { idGuest } = req.params;
 
   const { name, phoneNumber, email } = req.body;
@@ -79,14 +79,15 @@ async function updateGuest(req: Request<GuestIdParams>, res: Response) {
 
     res.status(result.success ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 
-async function deleteGuest(req: Request<GuestIdParams>, res: Response) {
+async function deleteGuest(
+  req: Request<GuestIdParams>,
+  res: Response,
+  next: NextFunction,
+) {
   const { idGuest } = req.params;
 
   try {
@@ -94,10 +95,7 @@ async function deleteGuest(req: Request<GuestIdParams>, res: Response) {
 
     res.status(result.success ? 200 : 404).json(result);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error en el servidor",
-    });
+    next(error);
   }
 }
 

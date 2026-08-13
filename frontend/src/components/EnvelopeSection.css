@@ -1,0 +1,166 @@
+/* Maquetado Fidedigno - Jerarquía de Capas Exacta para Estados Cerrado y Abierto */
+
+.envelope-container {
+  width: 100vw;
+  height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #F7F4EB;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Canvas del sobre en formato 1080x2340 */
+.envelope-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1080 / 2340;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translateY(-20dvh);
+}
+
+@media (min-width: 600px) {
+  .envelope-wrapper {
+    width: 440px;
+    height: 953.33px;
+    max-height: 96vh;
+  }
+}
+
+/* GRUPO DEL SOBRE: Desciende y desaparece en Fase 2 (delay 0.5s) */
+.envelope-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.5s, opacity 0.7s ease 0.7s;
+}
+
+.envelope-wrapper.open .envelope-box {
+  transform: translateY(60vh);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Capas PNG 1080x2340 */
+.envelope-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* 1. Fondo al estar cerrado o abierto: envelope_body_inside.png (z-index: 1) */
+.layer-body-inside {
+  z-index: 1;
+  transform: translateY(-9%);
+}
+
+/* 2. Sello Trasero al estar abierto: golden_seal_back.png (z-index: 2 - detrás de flap_inside) */
+.layer-seal-back {
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(-28%);
+}
+.envelope-wrapper.open .layer-seal-back {
+  opacity: 1;
+}
+
+/* 3. Solapa Abierta: envelope_flap_inside.png (z-index: 3 - detrás de la carta cuando sube) */
+.layer-flap-open {
+  z-index: 3;
+  opacity: 0;
+  transform: translateY(8%);
+}
+.envelope-wrapper.open .layer-flap-open {
+  opacity: 1;
+}
+
+/* 4. Cuerpo Verde Olivo: envelope_body.png (z-index: 5 - delante de la carta adentro) */
+.layer-body {
+  z-index: 5;
+  transform: translateY(-9%);
+}
+
+/* 5. Solapa Cerrada: envelope_flap.png (z-index: 6 - delante del cuerpo al estar cerrado) */
+.layer-flap-closed {
+  z-index: 6;
+  opacity: 1;
+  transform: translateY(16%);
+}
+.envelope-wrapper.open .layer-flap-closed {
+  opacity: 0;
+}
+
+/* 6. Sello Frontal: golden_seal.png (z-index: 7 - al frente de todo al estar cerrado) */
+.layer-seal-front {
+  z-index: 7;
+  opacity: 1;
+  transform: translateY(28.4%);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.envelope-wrapper.open .layer-seal-front {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Zona Clickeable Sincronizada sobre el Sello Dorado */
+.seal-click-area {
+  position: absolute;
+  top: 74.77%;
+  left: 42.22%;
+  width: 15.56%;
+  height: 7.13%;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.2s ease;
+}
+.seal-click-area:hover {
+  transform: scale(1.1);
+}
+.envelope-wrapper.open .seal-click-area {
+  display: none;
+}
+
+/* LA CARTA / INVITACIÓN DE LA BODA (Pedro & Catalina) */
+.envelope-inside-card {
+  position: absolute;
+  top: 55%;
+  left: 10%;
+  width: 80%;
+  height: 40%;
+  background-color: #F7F4EB;
+  border: 1px solid #E6DFC8;
+  border-radius: 12px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+  z-index: 2; /* CERRADO: z-index: 2 (detrás del cuerpo z-index: 5) */
+  transform: translateY(-9%);
+  transition: transform 0.9s cubic-bezier(0.25, 1, 0.5, 1) 0.5s, z-index 0s linear 0.5s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 20px;
+  box-sizing: border-box;
+}
+
+/* ABIERTO: La carta pasa a z-index: 4 (delante de envelope_flap_inside z-index: 3, pero detrás de envelope_body z-index: 5) */
+.envelope-wrapper.open .envelope-inside-card {
+  transform: translateY(-30vh) scale(1.08);
+  z-index: 4;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+}

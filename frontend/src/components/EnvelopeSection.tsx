@@ -9,6 +9,12 @@ import envelopeFlapInside from "../assets/images/envelope_flap_inside.png";
 import goldenSeal from "../assets/images/golden_seal.png";
 import goldenSealBack from "../assets/images/golden_seal_back.png";
 
+import eucaliptoImg from "../assets/images/pictures/eucalipto.webp";
+import separadorImg from "../assets/images/pictures/separador.webp";
+
+// Sección 2: Foto Principal
+import HeroPhotoSection from "./HeroPhotoSection.tsx";
+
 import "./EnvelopeSection.css";
 
 export function EnvelopeSection() {
@@ -78,19 +84,42 @@ export function EnvelopeSection() {
 
         {/* LA CARTA / INVITACIÓN DE LA BODA (Pedro & Catalina) */}
         <Box className="envelope-inside-card">
-          <Stack align="center" gap="md" style={{ textAlign: "center" }}>
-            <Text size="xs" style={{ fontFamily: "Prata, serif", color: "#797E5E", letterSpacing: "3px" }}>
-              NUESTRA BODA
-            </Text>
-            <Title order={1} style={{ fontFamily: "'Nova Quinta', cursive", color: "#2B2826", fontSize: "3.2rem", fontWeight: "normal", lineHeight: 1.1 }}>
-              Pedro & Catalina
-            </Title>
-            <Text size="xs" style={{ fontFamily: "Arvo, serif", color: "#4D513B", marginTop: "4px" }}>
-              13 de Diciembre, 2026
-            </Text>
-            <Text size="xs" c="dimmed" style={{ fontFamily: "Arvo, serif", marginTop: "0.8rem" }}>
-              ¡Bienvenidos a nuestra invitación digital!
-            </Text>
+          <Stack align="center" gap="xs" style={{ textAlign: "center", width: "100%" }}>
+            <Box style={{ padding: "150px 20px 0 20px" }}>
+              <img
+                src={eucaliptoImg}
+                alt="Rama de eucalipto"
+                style={{
+                  position: "absolute",
+                  top: "-29px",
+                  left: "-21px",
+                  width: "100%",
+                  height: "30%",
+                  pointerEvents: "none",
+                  zIndex: 1,
+                }}
+              />
+              <Title order={1} style={{ fontFamily: "var(--font-title)", color: "var(--text-dark)", fontSize: "2.8rem", fontWeight: "normal", lineHeight: 1.1, marginTop: "20px" }}>
+                Juan Pedro & Catalina
+              </Title>
+              <Text size="xs" style={{ fontFamily: "var(--font-subtitle)", color: "var(--green-accent)", letterSpacing: "3px", marginBottom: "7px", marginTop: "15px" }}>
+                NUESTRA BODA
+              </Text>
+
+              <img
+                src={separadorImg}
+                alt="Separador"
+                style={{
+                  width: "250px",
+                  height: "auto",
+                  margin: "14px auto 0 auto",
+                  display: "block",
+                }}
+              />
+            </Box>
+
+            {/* Foto Principal de los Novios de lado a lado */}
+            <HeroPhotoSection />
           </Stack>
         </Box>
 

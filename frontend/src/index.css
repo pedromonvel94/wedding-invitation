@@ -48,9 +48,26 @@
   font-display: swap;
 }
 
+/* Variables CSS Centralizadas de la Boda */
+:root {
+  /* Paleta de Colores */
+  --bg-cream: #F7F4EB;       /* Fondo Beige Marfil */
+  --text-dark: #2B2826;      /* Texto Café Oscuro */
+  --text-olive: #4D513B;     /* Texto Verde Olivo Oscuro */
+  --green-accent: #797E5E;   /* Acento Verde Olivo Oficial */
+  --border-cream: #E6DFC8;   /* Borde Marfil Fino */
+
+  /* Tipografías */
+  --font-title: 'Nova Quinta', cursive;
+  --font-subtitle: 'Prata', serif;
+  --font-body: 'Arvo', serif;
+}
+
 /* Reset Global Limpio */
 html, body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  background-color: var(--bg-cream);
+  color: var(--text-dark);
 }

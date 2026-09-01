@@ -139,7 +139,7 @@
 /* LA CARTA / INVITACIÓN DE LA BODA (Pedro & Catalina) */
 .envelope-inside-card {
   position: absolute;
-  top: 66%;
+  top: 68%;
   left: 10%;
   width: 80%;
   height: 38%;
@@ -160,11 +160,31 @@
   overflow: hidden;
 }
 
-/* ABIERTO: La carta sale del sobre y a los 1.0s se expande a su alto real largo */
+/* ABIERTO: La carta sale del sobre y a los 1.0s se expande a su alto real largo permitiendo scroll */
 .envelope-wrapper.open .envelope-inside-card {
   transform: translateY(-42vh) scale(1.06);
   height: auto;
-  max-height: 1200px;
+  max-height: 87vh;
+  overflow-y: auto;
   z-index: 4;
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
 }
+
+/* Sub paso 3: Animación de entrada suave para la Foto Principal y la Frase */
+.hero-photo-fade-in {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: heroPhotoFadeIn 1.2s cubic-bezier(0.25, 1, 0.5, 1) 0.9s forwards;
+}
+
+@keyframes heroPhotoFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

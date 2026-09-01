@@ -94,7 +94,7 @@ export function EnvelopeSection() {
                   top: "-29px",
                   left: "-21px",
                   width: "100%",
-                  height: "30%",
+                  height: "auto",
                   pointerEvents: "none",
                   zIndex: 1,
                 }}

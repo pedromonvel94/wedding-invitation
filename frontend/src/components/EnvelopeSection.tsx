@@ -18,6 +18,9 @@ import HeroPhotoSection from "./HeroPhotoSection.tsx";
 // Sección 4: Calendario Verde Olivo
 import CalendarSection from "./CalendarSection.tsx";
 
+// Sección 6: Ubicación de Ceremonia y Recepción
+import EventsSection from "./EventsSection.tsx";
+
 import "./EnvelopeSection.css";
 
 export function EnvelopeSection() {
@@ -118,7 +121,7 @@ export function EnvelopeSection() {
               </Text>
 
               {/* Nombres principales */}
-              <Title order={1} style={{ fontFamily: "var(--font-title)", color: "var(--text-dark)", fontSize: "3.9rem", fontWeight: "normal", lineHeight: 1.1 }}>
+              <Title order={1} style={{ fontFamily: "var(--font-title)", color: "var(--text-dark)", fontSize: "3.5rem", fontWeight: "normal", lineHeight: 1.1 }}>
                 Juan Pedro & Catalina
               </Title>
 
@@ -134,7 +137,6 @@ export function EnvelopeSection() {
                 style={{
                   width: "250px",
                   height: "auto",
-                  margin: "14px auto 0 auto",
                   display: "block",
                 }}
               />
@@ -143,8 +145,22 @@ export function EnvelopeSection() {
             {/* Foto Principal de los Novios de lado a lado */}
             <HeroPhotoSection />
 
+            {/* Separador gráfico entre la Sección de la Foto y la Sección Verde Olivo del Calendario */}
+            <img
+              src={separadorImg}
+              alt="Separador entre secciones"
+              style={{
+                width: "250px",
+                height: "auto",
+                display: "block",
+              }}
+            />
+
             {/* Paso 27: Sección Verde Olivo (Frase de invitación, Fecha enmarcada, Timer en vivo y Calendario con corazón) */}
             <CalendarSection />
+
+            {/* Paso 29: Sección 6 — Ubicación de Ceremonia Matrimonial y Recepción */}
+            <EventsSection />
           </Stack>
         </Box>
 

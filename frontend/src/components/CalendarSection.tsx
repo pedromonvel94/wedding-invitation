@@ -52,7 +52,7 @@ export function CalendarSection() {
         padding: "40px 20px 48px 20px",
         textAlign: "center",
         boxSizing: "border-box",
-        marginTop: "24px",
+        marginTop: "7px",
       }}
     >
       {/* 1. Frase de Invitación */}
@@ -83,17 +83,17 @@ export function CalendarSection() {
         DICIEMBRE
       </Text>
 
-      <Group justify="center" align="center" gap={28} style={{ marginBottom: "40px" }}>
-        <Box style={{ borderBottom: "1px solid #F7F4EB", width: "80px", paddingBottom: "4px", marginRight: "6px" }}>
-          <Text style={{ fontFamily: "var(--font-subtitle)", fontSize: "0.85rem", letterSpacing: "2px" }}>
+      <Group justify="center" align="center" wrap="nowrap" gap={12} style={{ marginBottom: "36px", width: "100%", maxWidth: "320px", margin: "0 auto 36px auto" }}>
+        <Box style={{ borderBottom: "1px solid #F7F4EB", flex: "1 1 auto", maxWidth: "75px", paddingBottom: "4px", textAlign: "center" }}>
+          <Text style={{ fontFamily: "var(--font-subtitle)", fontSize: "0.8rem", letterSpacing: "1.5px", whiteSpace: "nowrap" }}>
             DOMINGO
           </Text>
         </Box>
-        <Text style={{ fontFamily: "var(--font-title)", fontSize: "4.2rem", lineHeight: 0.8, color: "#F7F4EB", margin: "0 6px" }}>
+        <Text style={{ fontFamily: "var(--font-title)", fontSize: "3.6rem", lineHeight: 0.8, color: "#F7F4EB", flexShrink: 0 }}>
           13
         </Text>
-        <Box style={{ borderBottom: "1px solid #F7F4EB", width: "80px", paddingBottom: "4px", marginLeft: "6px" }}>
-          <Text style={{ fontFamily: "var(--font-subtitle)", fontSize: "0.85rem", letterSpacing: "2px" }}>
+        <Box style={{ borderBottom: "1px solid #F7F4EB", flex: "1 1 auto", maxWidth: "75px", paddingBottom: "4px", textAlign: "center" }}>
+          <Text style={{ fontFamily: "var(--font-subtitle)", fontSize: "0.8rem", letterSpacing: "1.5px", whiteSpace: "nowrap" }}>
             2026
           </Text>
         </Box>
@@ -104,24 +104,24 @@ export function CalendarSection() {
         FALTAN
       </Text>
 
-      <Group justify="center" gap="xs" style={{ marginBottom: "40px" }}>
+      <Group justify="center" align="center" wrap="nowrap" gap={4} style={{ marginBottom: "40px", width: "100%", overflow: "hidden" }}>
         {[
           { label: "Días", value: timeLeft.days },
           { label: "Horas", value: String(timeLeft.hours).padStart(2, "0") },
           { label: "Min", value: String(timeLeft.minutes).padStart(2, "0") },
           { label: "Seg", value: String(timeLeft.seconds).padStart(2, "0") },
         ].map((item, idx) => (
-          <Group key={idx} gap={4} align="center">
+          <Group key={idx} gap={2} align="center" wrap="nowrap">
             <Stack gap={2} align="center">
-              <Text style={{ fontFamily: "var(--font-subtitle)", fontSize: "1.8rem", fontWeight: "normal" }}>
+              <Text style={{ fontFamily: "var(--font-subtitle)", fontSize: "1.6rem", fontWeight: "normal" }}>
                 {item.value}
               </Text>
-              <Text size="xs" style={{ fontFamily: "var(--font-body)", opacity: 0.8 }}>
+              <Text size="xs" style={{ fontFamily: "var(--font-body)", opacity: 0.8, fontSize: "0.75rem" }}>
                 {item.label}
               </Text>
             </Stack>
             {idx < 3 && (
-              <Text style={{ fontSize: "1.6rem", margin: "0 4px", opacity: 0.8 }}>:</Text>
+              <Text style={{ fontSize: "1.4rem", margin: "0 2px", opacity: 0.8 }}>:</Text>
             )}
           </Group>
         ))}

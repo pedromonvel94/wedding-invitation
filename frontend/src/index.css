@@ -1,9 +1,9 @@
 /* Declaración de Fuentes Locales Oficiales para la Boda */
 
 @font-face {
-  font-family: 'Nova Quinta';
-  src: url('./assets/fonts/NovaQuinta_PERSONAL_USE_ONLY.otf') format('opentype');
-  font-weight: normal;
+  font-family: 'Great Vibes';
+  src: url('./assets/fonts/GreatVibes-Regular.ttf') format('truetype');
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -58,7 +58,7 @@
   --border-cream: #E6DFC8;   /* Borde Marfil Fino */
 
   /* Tipografías */
-  --font-title: 'Nova Quinta', cursive;
+  --font-title: 'Great Vibes', cursive;
   --font-subtitle: 'Prata', serif;
   --font-body: 'Arvo', serif;
 }

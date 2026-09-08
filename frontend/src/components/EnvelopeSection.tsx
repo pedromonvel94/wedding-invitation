@@ -15,6 +15,12 @@ import separadorImg from "../assets/images/pictures/separador.webp";
 // Sección 2: Foto Principal
 import HeroPhotoSection from "./HeroPhotoSection.tsx";
 
+// Sección 4: Calendario Verde Olivo
+import CalendarSection from "./CalendarSection.tsx";
+
+// Sección 6: Ubicación de Ceremonia y Recepción
+import EventsSection from "./EventsSection.tsx";
+
 import "./EnvelopeSection.css";
 
 export function EnvelopeSection() {
@@ -85,7 +91,7 @@ export function EnvelopeSection() {
         {/* LA CARTA / INVITACIÓN DE LA BODA (Pedro & Catalina) */}
         <Box className="envelope-inside-card">
           <Stack align="center" gap="xs" style={{ textAlign: "center", width: "100%" }}>
-            <Box style={{ padding: "150px 20px 0 20px" }}>
+            <Box style={{ padding: "140px 24px 0 24px" }}>
               <img
                 src={eucaliptoImg}
                 alt="Rama de eucalipto"
@@ -94,25 +100,43 @@ export function EnvelopeSection() {
                   top: "-29px",
                   left: "-21px",
                   width: "100%",
-                  height: "30%",
+                  height: "auto",
                   pointerEvents: "none",
                   zIndex: 1,
                 }}
               />
-              <Title order={1} style={{ fontFamily: "var(--font-title)", color: "var(--text-dark)", fontSize: "2.8rem", fontWeight: "normal", lineHeight: 1.1, marginTop: "20px" }}>
+
+              {/* Frase poética en la cabecera superior */}
+              <Text
+                style={{
+                  fontFamily: "var(--font-subtitle)",
+                  fontStyle: "italic",
+                  color: "var(--text-olive)",
+                  fontSize: "0.95rem",
+                  lineHeight: 1.6,
+                  margin: "16px",
+                }}
+              >
+                “Y entre millones de caminos en el mundo, nuestros pasos eligieron encontrarse para siempre.”
+              </Text>
+
+              {/* Nombres principales */}
+              <Title order={1} style={{ fontFamily: "var(--font-title)", color: "var(--text-dark)", fontSize: "3.5rem", fontWeight: "normal", lineHeight: 1.1 }}>
                 Juan Pedro & Catalina
               </Title>
-              <Text size="xs" style={{ fontFamily: "var(--font-subtitle)", color: "var(--green-accent)", letterSpacing: "3px", marginBottom: "7px", marginTop: "15px" }}>
+
+              {/* Subtítulo NUESTRA BODA */}
+              <Text size="xs" style={{ fontFamily: "var(--font-subtitle)", color: "var(--green-accent)", letterSpacing: "3px", marginBottom: "7px", marginTop: "14px" }}>
                 NUESTRA BODA
               </Text>
 
+              {/* Separador entre Título y Foto Principal */}
               <img
                 src={separadorImg}
                 alt="Separador"
                 style={{
                   width: "250px",
                   height: "auto",
-                  margin: "14px auto 0 auto",
                   display: "block",
                 }}
               />
@@ -120,6 +144,23 @@ export function EnvelopeSection() {
 
             {/* Foto Principal de los Novios de lado a lado */}
             <HeroPhotoSection />
+
+            {/* Separador gráfico entre la Sección de la Foto y la Sección Verde Olivo del Calendario */}
+            <img
+              src={separadorImg}
+              alt="Separador entre secciones"
+              style={{
+                width: "250px",
+                height: "auto",
+                display: "block",
+              }}
+            />
+
+            {/* Paso 27: Sección Verde Olivo (Frase de invitación, Fecha enmarcada, Timer en vivo y Calendario con corazón) */}
+            <CalendarSection />
+
+            {/* Paso 29: Sección 6 — Ubicación de Ceremonia Matrimonial y Recepción */}
+            <EventsSection />
           </Stack>
         </Box>
 

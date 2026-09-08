@@ -27,6 +27,6 @@ export const theme = createTheme({
     bgCream: "#F7F4EB", // Beige Marfil Cálido para fondos
     textDark: "#2B2826", // Café Oscuro para texto en fondos beige
     greenAccent: "#797E5E", // Verde Olivo de la decoración y sobre
-    fontScript: "'Nova Quinta', cursive", // Fuente para "Pedro & Catalina"
+    fontScript: "'Great Vibes', cursive", // Fuente para "Juan Pedro & Catalina"
   },
 });

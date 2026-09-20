@@ -21,6 +21,9 @@ import CalendarSection from "./CalendarSection.tsx";
 // Sección 6: Ubicación de Ceremonia y Recepción
 import EventsSection from "./EventsSection.tsx";
 
+// Sección 10 y 11: Galería de Fotos y Lluvia de Sobres Verde Olivo
+import GalleryAndGiftsSection from "./GalleryAndGiftsSection.tsx";
+
 import "./EnvelopeSection.css";
 
 export function EnvelopeSection() {
@@ -161,6 +164,9 @@ export function EnvelopeSection() {
 
             {/* Paso 29: Sección 6 — Ubicación de Ceremonia Matrimonial y Recepción */}
             <EventsSection />
+
+            {/* Paso 33 y 34: Sección Verde Olivo — Galería de Fotos y Lluvia de Sobres */}
+            <GalleryAndGiftsSection />
           </Stack>
         </Box>
 

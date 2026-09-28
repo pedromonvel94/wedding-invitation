@@ -21,8 +21,17 @@ import CalendarSection from "./CalendarSection.tsx";
 // Sección 6: Ubicación de Ceremonia y Recepción
 import EventsSection from "./EventsSection.tsx";
 
-// Sección 10 y 11: Galería de Fotos y Lluvia de Sobres Verde Olivo
-import GalleryAndGiftsSection from "./GalleryAndGiftsSection.tsx";
+// Sección Verde: Código de Vestimenta
+import DressCodeSection from "./DressCodeSection.tsx";
+
+// Sección Beige: Lluvia de Sobres y Confirmación de Asistencia
+import GiftsAndRsvpSection from "./GiftsAndRsvpSection.tsx";
+
+// Sección Verde: Recomendaciones
+import RecommendationsSection from "./RecommendationsSection.tsx";
+
+// Sección Beige: Galería de Fotos de Nuestros Momentos
+import GallerySection from "./GallerySection.tsx";
 
 import "./EnvelopeSection.css";
 
@@ -93,7 +102,7 @@ export function EnvelopeSection() {
 
         {/* LA CARTA / INVITACIÓN DE LA BODA (Pedro & Catalina) */}
         <Box className="envelope-inside-card">
-          <Stack align="center" gap="xs" style={{ textAlign: "center", width: "100%" }}>
+          <Stack align="center" gap="6px" style={{ textAlign: "center", width: "100%" }}>
             <Box style={{ padding: "140px 24px 0 24px" }}>
               <img
                 src={eucaliptoImg}
@@ -165,8 +174,17 @@ export function EnvelopeSection() {
             {/* Paso 29: Sección 6 — Ubicación de Ceremonia Matrimonial y Recepción */}
             <EventsSection />
 
-            {/* Paso 33 y 34: Sección Verde Olivo — Galería de Fotos y Lluvia de Sobres */}
-            <GalleryAndGiftsSection />
+            {/* 1. Sección Verde: Código de Vestimenta */}
+            <DressCodeSection />
+
+            {/* 4 & 5. Sección Beige: Lluvia de Sobres y Confirmación de Asistencia */}
+            <GiftsAndRsvpSection />
+
+            {/* 6. Sección Verde: Recomendaciones */}
+            <RecommendationsSection />
+
+            {/* 7. Sección Beige: Galería de Fotos de Nuestros Momentos */}
+            <GallerySection />
           </Stack>
         </Box>
 

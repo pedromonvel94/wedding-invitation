@@ -30,20 +30,38 @@ enum DeliveryStatus{
 	FAILED
 }
 
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+enum GuestSide {
+  PEDRO
+  CATA
+  BOTH
+}
+
 //MODELOS
 model Admin {
-  idAdmin Int @id @default(autoincrement())
-  name String
-  email String   @unique
-  password String
-  active Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  idAdmin      Int       @id @default(autoincrement())
+  name         String
+  lastName     String?
+  email        String    @unique
+  phoneNumber  String?
+  role         AdminRole @default(ADMIN)
+  active       Boolean   @default(true)
+  isConfirmed  Boolean   @default(false)
+  otpCode      String?
+  otpExpiresAt DateTime?
+  inviteToken  String?   @unique
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Invitation {
 	idInvitation Int @id @default(autoincrement())
 	familyName String
+	side GuestSide @default(BOTH)
 	
 	guests Guest[] 
 	invitationDeliveries InvitationDelivery[] 
@@ -55,7 +73,8 @@ model Guest {
   idGuest Int @id @default(autoincrement())
   name String 
   phoneNumber String @unique
-  email String @unique
+  email String?
+  side GuestSide @default(BOTH)
 
   invitationId Int
   invitation Invitation @relation(fields: [invitationId], references: [idInvitation])

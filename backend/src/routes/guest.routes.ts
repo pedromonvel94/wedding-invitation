@@ -6,6 +6,7 @@ const guestRouter = Router();
 
 guestRouter.use(authenticateToken);
 
+guestRouter.get("/guests", guestController.getAllGuests);
 guestRouter.post("/guests", guestController.createGuest);
 
 guestRouter.get("/guests/:idGuest", guestController.getGuestById);

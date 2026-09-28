@@ -17,14 +17,7 @@ async function loginUser(
     };
   }
 
-  const isPasswordValid = await comparePassword(password, admin.password);
 
-  if (!isPasswordValid) {
-    return {
-      success: false,
-      message: "Contraseña incorrecta",
-    };
-  }
 
   if (!admin.active) {
     return {
@@ -37,6 +30,7 @@ async function loginUser(
     idAdmin: admin.idAdmin,
     email: admin.email,
     name: admin.name,
+    role: admin.role,
   });
 
   return {

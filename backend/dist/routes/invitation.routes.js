@@ -1,0 +1,13 @@
+import { Router } from "express";
+import invitationController from "../controllers/invitation.controller.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
+const invitationRouter = Router();
+invitationRouter.use(authenticateToken);
+invitationRouter.get("/invitations", invitationController.getAllInvitations);
+invitationRouter.post("/invitations", invitationController.createInvitation);
+invitationRouter.get("/invitations/:familyName", invitationController.getInvitationByFamilyName);
+invitationRouter.get("/invitations/:idInvitation", invitationController.getInvitationById);
+invitationRouter.put("/invitations/:idInvitation", invitationController.updateInvitation);
+invitationRouter.delete("/invitations/:idInvitation", invitationController.deleteInvitation);
+invitationRouter.post("/invitations/:idInvitation/mark-sent", invitationController.markAsSent);
+export default invitationRouter;

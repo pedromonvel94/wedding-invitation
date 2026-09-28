@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "@mantine/core": "^9.5.0",
+    "@mantine/form": "^9.6.3",
     "@mantine/hooks": "^9.5.0",
+    "@tabler/icons-react": "^3.48.0",
     "axios": "^1.19.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

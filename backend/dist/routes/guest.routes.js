@@ -1,0 +1,12 @@
+import { Router } from "express";
+import guestController from "../controllers/guest.controller.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
+const guestRouter = Router();
+guestRouter.use(authenticateToken);
+guestRouter.get("/guests", guestController.getAllGuests);
+guestRouter.post("/guests", guestController.createGuest);
+guestRouter.get("/guests/:idGuest", guestController.getGuestById);
+guestRouter.get("/guests/invitation/:idInvitation", guestController.getGuestsByInvitation);
+guestRouter.put("/guests/:idGuest", guestController.updateGuest);
+guestRouter.delete("/guests/:idGuest", guestController.deleteGuest);
+export default guestRouter;

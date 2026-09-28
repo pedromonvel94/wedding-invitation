@@ -5,6 +5,10 @@ import invitationRoutes from "./routes/invitation.routes.js";
 import guestRoutes from "./routes/guest.routes.js";
 import confirmationRoutes from "./routes/confirmation.routes.js";
 import invitationDeliveryRoutes from "./routes/invitation-delivery.routes.js";
+import publicRoutes from "./routes/public.routes.js";
+import authRoutes from "./routes/auth.routes.js";
+import adminManagementRoutes from "./routes/admin-management.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import cors from "cors";
 
@@ -24,7 +28,11 @@ app.use(express.json());
 // Rutas públicas (sin prefix /api)
 app.use(healthRoutes);
 
-// Rutas de la API (con prefix /api para que no haya conflictos con las rutas de la invitacion)
+// Rutas de la API
+app.use("/api", publicRoutes);
+app.use("/api", authRoutes);
+app.use("/api", adminManagementRoutes);
+app.use("/api", dashboardRoutes);
 app.use("/api", loginRoutes);
 app.use("/api", invitationRoutes);
 app.use("/api", guestRoutes);

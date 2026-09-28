@@ -6,6 +6,7 @@ const invitationRouter = Router();
 
 invitationRouter.use(authenticateToken);
 
+invitationRouter.get("/invitations", invitationController.getAllInvitations);
 invitationRouter.post("/invitations", invitationController.createInvitation);
 
 invitationRouter.get(
@@ -26,6 +27,11 @@ invitationRouter.put(
 invitationRouter.delete(
   "/invitations/:idInvitation",
   invitationController.deleteInvitation,
+);
+
+invitationRouter.post(
+  "/invitations/:idInvitation/mark-sent",
+  invitationController.markAsSent,
 );
 
 export default invitationRouter;

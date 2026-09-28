@@ -10,7 +10,7 @@ type InvitationIdParams = {
 };
 
 async function createGuest(req: Request, res: Response, next: NextFunction) {
-  const { name, phoneNumber, email, invitationId } = req.body;
+  const { name, phoneNumber, email, invitationId, side } = req.body;
 
   try {
     const result = await guestService.createGuest(
@@ -18,6 +18,7 @@ async function createGuest(req: Request, res: Response, next: NextFunction) {
       phoneNumber,
       email,
       invitationId,
+      side,
     );
 
     res.status(result.success ? 200 : 400).json(result);
@@ -67,7 +68,7 @@ async function updateGuest(
 ) {
   const { idGuest } = req.params;
 
-  const { name, phoneNumber, email } = req.body;
+  const { name, phoneNumber, email, side } = req.body;
 
   try {
     const result = await guestService.updateGuest(
@@ -75,6 +76,7 @@ async function updateGuest(
       name,
       phoneNumber,
       email,
+      side,
     );
 
     res.status(result.success ? 200 : 404).json(result);
@@ -99,8 +101,18 @@ async function deleteGuest(
   }
 }
 
+async function getAllGuests(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await guestService.getAllGuests();
+    res.status(result.success ? 200 : 400).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export default {
   createGuest,
+  getAllGuests,
   getGuestById,
   getGuestsByInvitation,
   updateGuest,

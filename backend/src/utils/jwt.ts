@@ -4,6 +4,7 @@ export interface AdminPayload {
   idAdmin: number;
   email: string;
   name: string;
+  role: string;
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || "default_secret_fallback";

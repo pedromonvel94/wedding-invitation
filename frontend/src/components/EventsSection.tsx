@@ -124,6 +124,7 @@ export function EventsSection() {
           rel="noopener noreferrer"
           radius="xl"
           size="md"
+          className="btn-interactive"
           style={{
             backgroundColor: "var(--green-accent)",
             color: "#F7F4EB",
@@ -229,6 +230,7 @@ export function EventsSection() {
           rel="noopener noreferrer"
           radius="xl"
           size="md"
+          className="btn-interactive"
           style={{
             backgroundColor: "var(--green-accent)",
             color: "#F7F4EB",

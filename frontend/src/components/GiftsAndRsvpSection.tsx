@@ -142,6 +142,7 @@ export function GiftsAndRsvpSection() {
 
         <Button
           onClick={() => setRsvpModalOpen(true)}
+          className="btn-interactive"
           style={{
             backgroundColor: "#797E5E",
             color: "#F7F4EB",

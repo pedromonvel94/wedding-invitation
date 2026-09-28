@@ -33,6 +33,9 @@ import RecommendationsSection from "./RecommendationsSection.tsx";
 // Sección Beige: Galería de Fotos de Nuestros Momentos
 import GallerySection from "./GallerySection.tsx";
 
+// Componente Wrapper para Animaciones de Scroll Reveal
+import ScrollReveal from "./ScrollReveal.tsx";
+
 import "./EnvelopeSection.css";
 
 export function EnvelopeSection() {
@@ -169,22 +172,34 @@ export function EnvelopeSection() {
             />
 
             {/* Paso 27: Sección Verde Olivo (Frase de invitación, Fecha enmarcada, Timer en vivo y Calendario con corazón) */}
-            <CalendarSection />
+            <ScrollReveal>
+              <CalendarSection />
+            </ScrollReveal>
 
             {/* Paso 29: Sección 6 — Ubicación de Ceremonia Matrimonial y Recepción */}
-            <EventsSection />
+            <ScrollReveal>
+              <EventsSection />
+            </ScrollReveal>
 
             {/* 1. Sección Verde: Código de Vestimenta */}
-            <DressCodeSection />
+            <ScrollReveal>
+              <DressCodeSection />
+            </ScrollReveal>
 
             {/* 4 & 5. Sección Beige: Lluvia de Sobres y Confirmación de Asistencia */}
-            <GiftsAndRsvpSection />
+            <ScrollReveal>
+              <GiftsAndRsvpSection />
+            </ScrollReveal>
 
             {/* 6. Sección Verde: Recomendaciones */}
-            <RecommendationsSection />
+            <ScrollReveal>
+              <RecommendationsSection />
+            </ScrollReveal>
 
             {/* 7. Sección Beige: Galería de Fotos de Nuestros Momentos */}
-            <GallerySection />
+            <ScrollReveal>
+              <GallerySection />
+            </ScrollReveal>
           </Stack>
         </Box>
 

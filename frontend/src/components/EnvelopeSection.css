@@ -6,8 +6,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-  width: 100%;
-  height: 100dvh;
   background-color: #F7F4EB;
   overflow: hidden;
   display: flex;
@@ -15,12 +13,13 @@
   align-items: center;
 }
 
-/* Canvas del sobre en formato 1080x2340 — MOBILE (< 430px) */
+/* Canvas del sobre en formato 1080x2340 — MOBILE (< 430px)
+   ⚠️ NO se usa max-height para evitar que el sobre se letterboxee y el card
+   quede fuera del sobre. El overflow se recorta en el contenedor. */
 .envelope-wrapper {
   position: relative;
   width: 100%;
-  height: calc(100vw * 2340 / 1080);
-  max-height: 100dvh;
+  aspect-ratio: 1080 / 2340; /* Altura deriva del ancho — sin max-height */
   flex-shrink: 0;
   display: flex;
   justify-content: center;

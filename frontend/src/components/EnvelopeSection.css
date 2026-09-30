@@ -15,10 +15,8 @@
 .envelope-wrapper {
   position: relative;
   width: 100vw;
-  height: 100dvh;
-  max-width: 100vw;
-  max-height: 100%;
-  aspect-ratio: 1080 / 2340;
+  height: calc(100vw * 2340 / 1080); /* Altura proporcional al ancho del sobre 1080x2340 */
+  max-height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;

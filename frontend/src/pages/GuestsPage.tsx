@@ -240,9 +240,9 @@ export function GuestsPage() {
       dynamicGreeting = admin?.email === "catalina7596@hotmail.com" ? "Pedro y yo" : "Cata y yo";
     }
 
-    const messageText = `Se acabo la espera!!\n🥳🕺 🎉 ${gst.name}! 🎉 Con gran alegría ${dynamicGreeting} queremos invitarte a celebrar nuestra Boda. 👰‍♀️🤵‍♂️ La invitación se encuentra en el siguiente link:\n\n${invitationUrl}\n\n¡Esperamos contar con tu presencia! \nNo olvides confirmar tu asistencia antes del 15 de Octubre! ✅`;
+    const messageText = `Se acabo la espera!!\n\u{1F973}\u{1F57A}\u{1F3FC} \u{1F389} ${gst.name}! \u{1F389} Con gran alegría ${dynamicGreeting} queremos invitarte a celebrar nuestra Boda. \u{1F470}\u{1F3FC}\u{200D}\u{2640}\u{FE0F}\u{1F935}\u{1F3FB}\u{200D}\u{2642}\u{FE0F} La invitación se encuentra en el siguiente link:\n\n${invitationUrl}\n\n¡Esperamos contar con tu presencia! \nNo olvides confirmar tu asistencia antes del 15 de Octubre! \u{2705}`;
 
-    window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(messageText)}`, "_blank");
+    window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(messageText)}`, "_blank");
 
     try {
       await api.post(`/invitations/${gst.invitationId}/mark-sent`, { channel: "WHATSAPP" });

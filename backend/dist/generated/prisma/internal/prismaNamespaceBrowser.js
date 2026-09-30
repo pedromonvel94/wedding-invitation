@@ -73,6 +73,8 @@ export const InvitationScalarFieldEnum = {
     idInvitation: 'idInvitation',
     familyName: 'familyName',
     side: 'side',
+    respondedBy: 'respondedBy',
+    respondedAt: 'respondedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

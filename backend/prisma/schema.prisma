@@ -62,6 +62,8 @@ model Invitation {
 	idInvitation Int @id @default(autoincrement())
 	familyName String
 	side GuestSide @default(BOTH)
+	respondedBy String?
+	respondedAt DateTime?
 	
 	guests Guest[] 
 	invitationDeliveries InvitationDelivery[] 

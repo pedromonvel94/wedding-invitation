@@ -41,9 +41,10 @@ export class PublicController {
      */
     async submitBatchPublicRsvp(req, res, next) {
         try {
-            const { invitationId, responses } = req.body;
+            const { invitationId, respondedByName, responses } = req.body;
             const result = await publicService.submitBatchPublicRsvp({
                 invitationId: invitationId ? Number(invitationId) : undefined,
+                respondedByName: respondedByName ? String(respondedByName).trim() : undefined,
                 responses: Array.isArray(responses) ? responses : [],
             });
             res.json(result);

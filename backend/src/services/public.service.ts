@@ -134,6 +134,16 @@ export class PublicService {
       },
     });
 
+    if (targetGuest.invitationId) {
+      await prisma.invitation.update({
+        where: { idInvitation: targetGuest.invitationId },
+        data: {
+          respondedBy: targetGuest.name,
+          respondedAt: new Date(),
+        },
+      });
+    }
+
     return {
       success: true,
       message: status === "DECLINED" ? "Respuesta registrada: No asistirá" : "¡Asistencia confirmada con éxito!",
@@ -152,6 +162,7 @@ export class PublicService {
    */
   async submitBatchPublicRsvp(data: {
     invitationId?: number;
+    respondedByName?: string;
     responses: Array<{
       guestId: number;
       status: "CONFIRMED" | "DECLINED";
@@ -176,6 +187,29 @@ export class PublicService {
           },
         });
         results.push(conf);
+      }
+    }
+
+    if (data.invitationId) {
+      let responderName = data.respondedByName;
+
+      if (!responderName && data.responses.length > 0) {
+        const firstGuest = await prisma.guest.findUnique({
+          where: { idGuest: data.responses[0].guestId },
+        });
+        if (firstGuest) {
+          responderName = firstGuest.name;
+        }
+      }
+
+      if (responderName) {
+        await prisma.invitation.update({
+          where: { idInvitation: data.invitationId },
+          data: {
+            respondedBy: responderName,
+            respondedAt: new Date(),
+          },
+        });
       }
     }
 

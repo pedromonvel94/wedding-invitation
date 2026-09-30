@@ -12,8 +12,19 @@ import dashboardRoutes from "./routes/dashboard.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import cors from "cors";
 
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
+  : ["http://localhost:5173"];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Permitir solicitudes si no hay origin (como curl/mobile) o si está en la lista permitida
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };

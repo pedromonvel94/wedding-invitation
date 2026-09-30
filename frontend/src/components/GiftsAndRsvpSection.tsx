@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Text, Title, Stack, Button, Modal, TextInput, Select } from "@mantine/core";
+import { Box, Text, Title, Stack, Button, Modal, TextInput, Select, Alert } from "@mantine/core";
 import api from "../config/axios.ts";
 
 // Imagen verde de lluvia de sobres para contrastar con fondo Beige
@@ -19,6 +19,8 @@ interface PublicGuest {
 interface PublicInvitation {
   idInvitation: number;
   familyName: string;
+  respondedBy?: string | null;
+  respondedAt?: string | null;
   guests: PublicGuest[];
 }
 
@@ -33,6 +35,7 @@ export function GiftsAndRsvpSection() {
   
   // Multi-guest family state: guestId -> "CONFIRMED" | "DECLINED"
   const [familyResponses, setFamilyResponses] = useState<Record<number, string>>({});
+  const [respondedByName, setRespondedByName] = useState<string>("");
 
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -47,6 +50,12 @@ export function GiftsAndRsvpSection() {
       if (res.data.success && res.data.data) {
         const inv: PublicInvitation = res.data.data;
         setInvitationData(inv);
+
+        if (inv.respondedBy) {
+          setRespondedByName(inv.respondedBy);
+        } else if (inv.guests.length > 0) {
+          setRespondedByName(inv.guests[0].name);
+        }
         
         // Initial responses map from existing confirmations
         const initialMap: Record<number, string> = {};
@@ -88,6 +97,7 @@ export function GiftsAndRsvpSection() {
 
         await api.post("/public/rsvp/batch", {
           invitationId: invitationData.idInvitation,
+          respondedByName: respondedByName || invitationData.guests[0]?.name,
           responses,
         });
       } else {
@@ -315,10 +325,53 @@ export function GiftsAndRsvpSection() {
             <Stack gap="md">
               {invitationData && invitationData.guests.length > 0 ? (
                 // Formulario Multi-Integrante de Familia
-                <Stack gap="lg">
-                  <Text size="xs" c="dimmed" style={{ fontFamily: "var(--font-subtitle)" }}>
-                    Por favor confirma la asistencia individual de cada integrante de la familia:
-                  </Text>
+                <Stack gap="md">
+                  {invitationData.respondedBy ? (
+                    <Alert
+                      color="teal"
+                      title="Asistencia registrada previamente"
+                      styles={{
+                        title: {
+                          fontSize: "1.05rem",
+                          fontWeight: 700,
+                          color: "#2E3420",
+                          fontFamily: "var(--font-subtitle)",
+                          marginBottom: "6px",
+                        },
+                        body: {
+                          color: "#4A503D",
+                        },
+                      }}
+                      style={{
+                        backgroundColor: "#EBF5EE",
+                        borderColor: "#797E5E",
+                        borderRadius: "10px",
+                        padding: "14px 16px",
+                      }}
+                    >
+                      <Text style={{ fontFamily: "var(--font-subtitle)", color: "#4A503D", fontSize: "0.95rem", lineHeight: 1.5 }}>
+                        <strong>{invitationData.respondedBy}</strong> ya registró previamente la asistencia del grupo familiar{" "}
+                        <strong>"{invitationData.familyName}"</strong>. A continuación puedes consultar o actualizar la respuesta de cada integrante:
+                      </Text>
+                    </Alert>
+                  ) : (
+                    <Text style={{ fontFamily: "var(--font-subtitle)", color: "#797E5E", fontSize: "0.95rem", lineHeight: 1.4 }}>
+                      Por favor confirma la asistencia individual de cada integrante de la familia:
+                    </Text>
+                  )}
+
+                  {invitationData.guests.length > 1 && (
+                    <Select
+                      label="¿Quién de ustedes está completando este formulario?"
+                      data={invitationData.guests.map((g) => g.name)}
+                      value={respondedByName}
+                      onChange={(val) => setRespondedByName(val || "")}
+                      styles={{
+                        label: { color: "#4A503D", fontFamily: "var(--font-subtitle)", fontSize: "0.85rem", fontWeight: 600 },
+                        input: { backgroundColor: "#FFF", borderColor: "#797E5E" },
+                      }}
+                    />
+                  )}
 
                   {invitationData.guests.map((gst) => (
                     <Box key={gst.idGuest} style={{ background: "#FFF", padding: "12px", borderRadius: "10px", border: "1px solid #EAE5D9" }}>
@@ -388,7 +441,9 @@ export function GiftsAndRsvpSection() {
                 }}
               >
                 {invitationData && invitationData.guests.length > 0
-                  ? "Enviar Confirmaciones de la Familia"
+                  ? invitationData.respondedBy
+                    ? "Actualizar Confirmaciones de la Familia"
+                    : "Enviar Confirmaciones de la Familia"
                   : "Enviar Confirmación"}
               </Button>
             </Stack>

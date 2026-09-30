@@ -6,6 +6,7 @@ export const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 15000, // 15 segundos — evita que las peticiones queden colgadas
 });
 
 // Interceptor de Peticiones (Request Interceptor): Inyecta el token JWT si existe en localStorage

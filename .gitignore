@@ -1,14 +1,25 @@
 node_modules/
 .env
 
-## Diagramas  
+## Diagramas (excluir imágenes de diseño, pero NO los assets del frontend)
+*.drawio
+*.pdf
+
+## Excluir imágenes genéricas excepto las del frontend
 *.png
 *.jpg
 *.jpeg
 *.gif
 *.webp
-*.drawio
-*.pdf
+
+## Pero SÍ incluir los assets del frontend (necesarios para producción)
+!frontend/src/assets/**/*.png
+!frontend/src/assets/**/*.jpg
+!frontend/src/assets/**/*.jpeg
+!frontend/src/assets/**/*.gif
+!frontend/src/assets/**/*.webp
+!frontend/public/**/*.png
+!frontend/public/**/*.svg
 
 ## Prompts
-master-prompt.md
+master-prompt.md

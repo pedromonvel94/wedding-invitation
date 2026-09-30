@@ -11,23 +11,30 @@ export class AuthService {
    * Genera un código OTP de 6 dígitos numéricos y lo envía por correo electrónico real y WhatsApp API.
    */
   async requestLoginOtp(email: string) {
+    console.log(`🔑 [AUTH SERVICE] Request OTP initiated for email: "${email}"`);
     if (!email || !email.trim()) {
+      console.warn(`⚠️ [AUTH SERVICE] Empty email provided`);
       throw new AppError("El correo electrónico es requerido", 400);
     }
 
     const cleanEmail = email.trim().toLowerCase();
 
+    console.log(`🔍 [AUTH SERVICE] Querying database for Admin email: "${cleanEmail}"`);
     const admin = await prisma.admin.findUnique({
       where: { email: cleanEmail },
     });
 
     if (!admin) {
+      console.warn(`❌ [AUTH SERVICE] Admin NOT found in DB for email: "${cleanEmail}"`);
       throw new AppError("El correo no está registrado como usuario administrador autorizado", 401);
     }
 
     if (!admin.active) {
+      console.warn(`❌ [AUTH SERVICE] Admin account inactive for email: "${cleanEmail}"`);
       throw new AppError("La cuenta de administrador se encuentra desactivada. Contacte al Super Administrador.", 403);
     }
+
+    console.log(`✅ [AUTH SERVICE] Admin found in DB: id=${admin.idAdmin}, name="${admin.name}"`);
 
     // Generar código numérico único de 6 dígitos (ej: 482910)
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -42,15 +49,16 @@ export class AuthService {
       },
     });
 
+    console.log(`📩 [AUTH SERVICE] OTP generated and saved to DB. Sending email to: "${admin.email}"...`);
+
     // Enviar correo electrónico real con nodemailer
-    await sendOtpEmail(admin.email, otpCode);
+    const emailSent = await sendOtpEmail(admin.email, otpCode);
+    console.log(`📧 [AUTH SERVICE] Email send result: ${emailSent ? "SUCCESS" : "FAILED"}`);
 
     // Enviar mensaje de WhatsApp por API Oficial si hay número registrado
     if (admin.phoneNumber) {
       await sendOtpWhatsApp(admin.phoneNumber, otpCode);
     }
-
-    const formattedPhone = admin.phoneNumber || "+57 (No configurado)";
 
     return {
       success: true,

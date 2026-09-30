@@ -41,6 +41,8 @@ export function LoginPage() {
     e.preventDefault();
     if (!email.trim()) return;
 
+    console.log("🔐 [LOGIN PAGE] Initiating OTP request for email:", email.trim());
+
     setErrorMsg(null);
     setLoading(true);
 
@@ -49,11 +51,14 @@ export function LoginPage() {
         email: email.trim(),
       });
 
+      console.log("✅ [LOGIN PAGE] OTP request successful:", response.data);
+
       if (response.data.success) {
         setSuccessInfo(response.data.message);
         setStep(2);
       }
     } catch (err: unknown) {
+      console.error("❌ [LOGIN PAGE] OTP request failed:", err);
       if (err && typeof err === "object" && "response" in err) {
         const axiosErr = err as { response?: { data?: { message?: string } } };
         setErrorMsg(
@@ -61,7 +66,9 @@ export function LoginPage() {
             "El correo no está registrado como administrador autorizado.",
         );
       } else {
-        setErrorMsg("Error de conexión con el servidor de autenticación.");
+        setErrorMsg(
+          "El servidor backend en Render está despertando (Cold Start) o hubo un error de conexión. Por favor intenta de nuevo en unos segundos.",
+        );
       }
     } finally {
       setLoading(false);
@@ -76,6 +83,8 @@ export function LoginPage() {
       return;
     }
 
+    console.log("🔐 [LOGIN PAGE] Verifying OTP code:", otpCode.trim(), "for email:", email.trim());
+
     setErrorMsg(null);
     setLoading(true);
 
@@ -85,11 +94,14 @@ export function LoginPage() {
         otpCode: otpCode.trim(),
       });
 
+      console.log("✅ [LOGIN PAGE] OTP verification successful:", response.data);
+
       if (response.data.success && response.data.token) {
         login(response.data.token, response.data.admin);
         navigate("/admin");
       }
     } catch (err: unknown) {
+      console.error("❌ [LOGIN PAGE] OTP verification failed:", err);
       if (err && typeof err === "object" && "response" in err) {
         const axiosErr = err as { response?: { data?: { message?: string } } };
         setErrorMsg(

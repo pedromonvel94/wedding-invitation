@@ -1,29 +1,31 @@
 /* Maquetado Fidedigno - Ajuste de Top 66% con Recorte Físico del Bolsillo */
 
 .envelope-container {
-  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100dvh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background-color: #F7F4EB;
-  position: relative;
   overflow: hidden;
 }
 
-/* Canvas del sobre en formato 1080x2340 */
+/* Canvas del sobre en formato 1080x2340 — MOBILE (< 430px) */
 .envelope-wrapper {
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% - 20dvh));
   width: 100vw;
-  height: calc(100vw * 2340 / 1080); /* Altura proporcional al ancho del sobre 1080x2340 */
+  height: calc(100vw * 2340 / 1080);
   max-height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
-  transform: translateY(-20dvh);
 }
 
-@media (min-width: 600px) {
+/* TABLET / ESCRITORIO ≥ 430px */
+@media (min-width: 430px) {
   .envelope-wrapper {
     width: 440px;
     height: 953.33px;

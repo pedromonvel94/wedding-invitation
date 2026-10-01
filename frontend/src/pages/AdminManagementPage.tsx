@@ -73,7 +73,7 @@ export function AdminManagementPage() {
       name: (value: string) => (value.trim().length > 0 ? null : "El nombre es obligatorio"),
       email: (value: string) => (/^\S+@\S+$/.test(value) ? null : "Correo electrónico inválido"),
       phoneNumber: (value: string) => (value.trim().length >= 10 ? null : "Número de celular inválido (mínimo 10 dígitos)"),
-      tempPassword: (value: string, values) =>
+      tempPassword: (value: string) =>
         !editingAdmin && value.length < 6 ? "La contraseña temporal debe tener al menos 6 caracteres" : null,
     },
   });

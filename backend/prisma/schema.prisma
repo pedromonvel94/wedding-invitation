@@ -43,19 +43,17 @@ enum GuestSide {
 
 //MODELOS
 model Admin {
-  idAdmin      Int       @id @default(autoincrement())
-  name         String
-  lastName     String?
-  email        String    @unique
-  phoneNumber  String?
-  role         AdminRole @default(ADMIN)
-  active       Boolean   @default(true)
-  isConfirmed  Boolean   @default(false)
-  otpCode      String?
-  otpExpiresAt DateTime?
-  inviteToken  String?   @unique
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  idAdmin            Int       @id @default(autoincrement())
+  name               String
+  lastName           String?
+  email              String    @unique
+  phoneNumber        String?
+  role               AdminRole @default(ADMIN)
+  active             Boolean   @default(true)
+  password           String?
+  mustChangePassword Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 model Invitation {

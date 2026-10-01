@@ -23,13 +23,14 @@ export class AdminManagementController {
    */
   async createAdmin(req: Request, res: Response, next: NextFunction) {
     try {
-      const { name, lastName, email, phoneNumber, role } = req.body;
-      const result = await adminManagementService.createAdminInvite({
+      const { name, lastName, email, phoneNumber, role, tempPassword } = req.body;
+      const result = await adminManagementService.createAdmin({
         name,
         lastName,
         email,
         phoneNumber,
         role,
+        tempPassword,
       });
       res.status(201).json(result);
     } catch (error) {
@@ -37,18 +38,6 @@ export class AdminManagementController {
     }
   }
 
-  /**
-   * GET /api/admins/accept-invite/:token
-   */
-  async acceptInvite(req: Request, res: Response, next: NextFunction) {
-    try {
-      const token = String(req.params.token);
-      const result = await adminManagementService.acceptInvite(token);
-      res.json(result);
-    } catch (error) {
-      next(error);
-    }
-  }
 
   /**
    * PUT /api/admins/:id

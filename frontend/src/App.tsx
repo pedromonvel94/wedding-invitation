@@ -4,11 +4,11 @@ import LandingLayout from "./layouts/LandingLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 import DashboardPage from "./pages/DashboardPage";
 import AdminManagementPage from "./pages/AdminManagementPage";
 import InvitationsPage from "./pages/InvitationsPage";
 import GuestsPage from "./pages/GuestsPage";
-import AcceptInvitePage from "./pages/AcceptInvitePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -21,11 +21,9 @@ function App() {
             <Route path="/" element={<LandingPage />} />
           </Route>
 
-          {/* Ruta Pública de Aceptación de Invitación para Admin */}
-          <Route path="/accept-invite/:token" element={<AcceptInvitePage />} />
-
-          {/* Ruta de Login del Administrador */}
+          {/* Rutas de Autenticación */}
           <Route path="/admin/login" element={<LoginPage />} />
+          <Route path="/admin/change-password" element={<ChangePasswordPage />} />
 
           {/* Rutas Privadas Protegidas del Panel de Administración */}
           <Route element={<ProtectedRoute />}>

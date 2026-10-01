@@ -1,7 +1,6 @@
-import crypto from "crypto";
 import prisma from "../config/prisma.js";
+import { hashPassword } from "../utils/password.js";
 import { AppError } from "../utils/app-error.js";
-import { sendAdminInviteEmail } from "../utils/email.js";
 import type { AdminRole } from "../generated/prisma/client.js";
 
 export interface CreateAdminInput {
@@ -9,6 +8,7 @@ export interface CreateAdminInput {
   lastName: string;
   email: string;
   phoneNumber: string;
+  tempPassword: string;
   role?: "SUPER_ADMIN" | "ADMIN";
 }
 
@@ -26,7 +26,7 @@ export class AdminManagementService {
         phoneNumber: true,
         role: true,
         active: true,
-        isConfirmed: true,
+        mustChangePassword: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -35,13 +35,17 @@ export class AdminManagementService {
   }
 
   /**
-   * Crear e invitar a un nuevo usuario Administrador desde el Drawer del Super Admin (+ New User)
+   * Crear un nuevo Administrador con contraseña temporal asignada por el Super Admin
    */
-  async createAdminInvite(data: CreateAdminInput) {
-    const { name, lastName, email, phoneNumber, role } = data;
+  async createAdmin(data: CreateAdminInput) {
+    const { name, lastName, email, phoneNumber, tempPassword, role } = data;
 
-    if (!name || !lastName || !email || !phoneNumber) {
-      throw new AppError("Nombre, Apellido, Correo y Número de Teléfono son obligatorios", 400);
+    if (!name || !lastName || !email || !phoneNumber || !tempPassword) {
+      throw new AppError("Nombre, Apellido, Correo, Teléfono y Contraseña Temporal son obligatorios", 400);
+    }
+
+    if (tempPassword.length < 6) {
+      throw new AppError("La contraseña temporal debe tener al menos 6 caracteres", 400);
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -61,8 +65,8 @@ export class AdminManagementService {
       formattedPhone = `+57${formattedPhone.replace(/^57/, "")}`;
     }
 
-    // Generar token único de invitación
-    const inviteToken = crypto.randomUUID();
+    // Hashear la contraseña temporal
+    const hashedPassword = await hashPassword(tempPassword);
 
     const newAdmin = await prisma.admin.create({
       data: {
@@ -72,68 +76,30 @@ export class AdminManagementService {
         phoneNumber: formattedPhone,
         role: (role || "ADMIN") as AdminRole,
         active: true,
-        isConfirmed: false,
-        inviteToken,
-      },
-    });
-
-    // URL del enlace de aceptación
-    const inviteLink = `http://localhost:5173/accept-invite/${inviteToken}`;
-
-    // Enviar correo electrónico real de invitación
-    await sendAdminInviteEmail(
-      newAdmin.email,
-      `${newAdmin.name} ${newAdmin.lastName || ""}`.trim(),
-      inviteLink,
-    );
-
-    return {
-      success: true,
-      message: `Invitación enviada exitosamente a ${newAdmin.email}. Se le ha notificado por correo con el botón de aceptación.`,
-      admin: newAdmin,
-      inviteLink,
-    };
-  }
-
-  /**
-   * Aceptar invitación mediante el token único del correo
-   */
-  async acceptInvite(token: string) {
-    if (!token || !token.trim()) {
-      throw new AppError("Token de invitación no proporcionado", 400);
-    }
-
-    const admin = await prisma.admin.findUnique({
-      where: { inviteToken: token.trim() },
-    });
-
-    if (!admin) {
-      throw new AppError("El enlace de invitación es inválido o ya ha sido utilizado", 404);
-    }
-
-    const updated = await prisma.admin.update({
-      where: { idAdmin: admin.idAdmin },
-      data: {
-        isConfirmed: true,
-        inviteToken: null,
+        password: hashedPassword,
+        mustChangePassword: true, // El admin debe cambiar su contraseña en el primer login
       },
     });
 
     return {
       success: true,
-      message: "¡Invitación aceptada exitosamente! Ya estás autorizado para iniciar sesión en el panel administrativo.",
+      message: `Administrador "${newAdmin.name} ${newAdmin.lastName}" creado exitosamente. Al iniciar sesión por primera vez se le solicitará cambiar su contraseña.`,
       admin: {
-        idAdmin: updated.idAdmin,
-        name: updated.name,
-        email: updated.email,
+        idAdmin: newAdmin.idAdmin,
+        name: newAdmin.name,
+        lastName: newAdmin.lastName,
+        email: newAdmin.email,
+        phoneNumber: newAdmin.phoneNumber,
+        role: newAdmin.role,
+        mustChangePassword: newAdmin.mustChangePassword,
       },
     };
   }
 
   /**
-   * Editar datos de un Administrador (Nombre, Apellido, Correo, Celular +57, Rol, Estado)
+   * Editar datos de un Administrador
    */
-  async updateAdmin(idAdmin: number, data: Partial<CreateAdminInput> & { active?: boolean }) {
+  async updateAdmin(idAdmin: number, data: Partial<CreateAdminInput> & { active?: boolean; resetPassword?: string }) {
     const admin = await prisma.admin.findUnique({
       where: { idAdmin },
     });
@@ -169,6 +135,15 @@ export class AdminManagementService {
       updateData.phoneNumber = formattedPhone;
     }
 
+    // El Super Admin puede resetear la contraseña de un admin
+    if (data.resetPassword) {
+      if (data.resetPassword.length < 6) {
+        throw new AppError("La nueva contraseña debe tener al menos 6 caracteres", 400);
+      }
+      updateData.password = await hashPassword(data.resetPassword);
+      updateData.mustChangePassword = true;
+    }
+
     const updated = await prisma.admin.update({
       where: { idAdmin },
       data: updateData,
@@ -182,7 +157,7 @@ export class AdminManagementService {
   }
 
   /**
-   * Eliminar o desactivar un Administrador (Protegiendo al Super Admin principal)
+   * Eliminar un Administrador (Protegiendo al Super Admin principal)
    */
   async deleteAdmin(idAdmin: number) {
     const admin = await prisma.admin.findUnique({
@@ -193,8 +168,8 @@ export class AdminManagementService {
       throw new AppError("Administrador no encontrado", 404);
     }
 
-    if (admin.email === "juanpemonv1994@gmail.com" || admin.role === "SUPER_ADMIN") {
-      throw new AppError("No es posible eliminar ni desactivar al Super Administrador principal", 403);
+    if (admin.role === "SUPER_ADMIN") {
+      throw new AppError("No es posible eliminar al Super Administrador", 403);
     }
 
     await prisma.admin.delete({

@@ -6,7 +6,6 @@ import guestRoutes from "./routes/guest.routes.js";
 import confirmationRoutes from "./routes/confirmation.routes.js";
 import invitationDeliveryRoutes from "./routes/invitation-delivery.routes.js";
 import publicRoutes from "./routes/public.routes.js";
-import authRoutes from "./routes/auth.routes.js";
 import adminManagementRoutes from "./routes/admin-management.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
@@ -18,7 +17,6 @@ const allowedOrigins = process.env.CORS_ORIGIN
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    // Permitir solicitudes si no hay origin (como curl/mobile) o si está en la lista permitida
     if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
       callback(null, true);
     } else {
@@ -36,15 +34,14 @@ const app: Application = express();
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Rutas públicas (sin prefix /api)
+// Rutas de salud
 app.use(healthRoutes);
 
 // Rutas de la API
 app.use("/api", publicRoutes);
-app.use("/api", authRoutes);
+app.use("/api", loginRoutes);
 app.use("/api", adminManagementRoutes);
 app.use("/api", dashboardRoutes);
-app.use("/api", loginRoutes);
 app.use("/api", invitationRoutes);
 app.use("/api", guestRoutes);
 app.use("/api", confirmationRoutes);

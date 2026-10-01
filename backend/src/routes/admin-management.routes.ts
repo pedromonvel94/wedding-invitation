@@ -4,13 +4,8 @@ import { authenticateToken, requireSuperAdmin } from "../middlewares/auth.middle
 
 const adminManagementRouter = Router();
 
-// Endpoint público para aceptar invitación por token
-adminManagementRouter.get(
-  "/admins/accept-invite/:token",
-  adminManagementController.acceptInvite,
-);
 
-// Endpoints protegidos exclusivamente para el SUPER_ADMIN (Juan Pedro Montoya)
+// Endpoints protegidos exclusivamente para el SUPER_ADMIN
 adminManagementRouter.get(
   "/admins",
   authenticateToken,

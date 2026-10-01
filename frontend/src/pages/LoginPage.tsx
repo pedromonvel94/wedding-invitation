@@ -6,11 +6,9 @@ import {
   Button,
   Stack,
   TextInput,
+  PasswordInput,
   Paper,
-  PinInput,
   Alert,
-  Group,
-  Box,
   Badge,
 } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
@@ -21,106 +19,53 @@ export function LoginPage() {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
 
-  // Si el usuario ya está autenticado, redirigir automáticamente al dashboard
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/admin", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
-  // Paso del formulario: 1 = Ingresar Email, 2 = Ingresar PIN de 6 dígitos
-  const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
-  const [otpCode, setOtpCode] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successInfo, setSuccessInfo] = useState<string | null>(null);
 
-  // Paso 1: Solicitud de código por correo
-  const handleRequestOtp = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
-
-    console.log("🔐 [LOGIN PAGE] Initiating OTP request for email:", email.trim());
+    if (!email.trim() || !password.trim()) return;
 
     setErrorMsg(null);
     setLoading(true);
 
     try {
-      const response = await api.post("/auth/login-request", {
+      const response = await api.post("/auth/login", {
         email: email.trim(),
+        password,
       });
 
-      console.log("✅ [LOGIN PAGE] OTP request successful:", response.data);
+      const data = response.data;
 
-      if (response.data.success) {
-        setSuccessInfo(response.data.message);
-        setStep(2);
+      if (data.success && data.mustChangePassword) {
+        // Primer login — redirigir a cambio de contraseña
+        navigate("/admin/change-password", {
+          state: { email: data.email },
+        });
+        return;
       }
-    } catch (err: unknown) {
-      console.error("❌ [LOGIN PAGE] OTP request failed:", err);
-      if (err && typeof err === "object" && "response" in err) {
-        const axiosErr = err as { response?: { data?: { message?: string } } };
-        setErrorMsg(
-          axiosErr.response?.data?.message ||
-            "El correo no está registrado como administrador autorizado.",
-        );
-      } else {
-        setErrorMsg(
-          "El servidor backend en Render está despertando (Cold Start) o hubo un error de conexión. Por favor intenta de nuevo en unos segundos.",
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  // Paso 2: Verificación del código de 6 dígitos
-  const handleVerifyOtp = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (otpCode.length !== 6) {
-      setErrorMsg("Debes ingresar el código completo de 6 dígitos numéricos.");
-      return;
-    }
-
-    console.log("🔐 [LOGIN PAGE] Verifying OTP code:", otpCode.trim(), "for email:", email.trim());
-
-    setErrorMsg(null);
-    setLoading(true);
-
-    try {
-      const response = await api.post("/auth/login-verify", {
-        email: email.trim(),
-        otpCode: otpCode.trim(),
-      });
-
-      console.log("✅ [LOGIN PAGE] OTP verification successful:", response.data);
-
-      if (response.data.success && response.data.token) {
-        login(response.data.token, response.data.admin);
+      if (data.success && data.token) {
+        login(data.token, data.admin);
         navigate("/admin");
       }
     } catch (err: unknown) {
-      console.error("❌ [LOGIN PAGE] OTP verification failed:", err);
-      if (err && typeof err === "object" && "response" in err) {
-        const axiosErr = err as { response?: { data?: { message?: string } } };
-        setErrorMsg(
-          axiosErr.response?.data?.message ||
-            "El código de 6 dígitos es incorrecto o ha expirado.",
-        );
-      } else {
-        setErrorMsg("Error al verificar el código de seguridad.");
-      }
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      setErrorMsg(
+        axiosErr.response?.data?.message ||
+          "Correo o contraseña incorrectos. Verifica tus credenciales.",
+      );
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleReset = () => {
-    setStep(1);
-    setOtpCode("");
-    setErrorMsg(null);
-    setSuccessInfo(null);
   };
 
   return (
@@ -149,127 +94,69 @@ export function LoginPage() {
                 fontSize: "1.8rem",
               }}
             >
-              {step === 1 ? "Iniciar Sesión" : "Verificación de Seguridad"}
+              Iniciar Sesión
             </Title>
             <Text size="sm" c="dimmed" style={{ maxWidth: "300px" }}>
-              {step === 1
-                ? "Ingresa tu correo autorizado para recibir el código de verificación de 6 dígitos por Correo"
-                : `Ingresa el código numérico de 6 dígitos enviado a ${email}`}
+              Ingresa tu correo y contraseña para acceder al panel de administración
             </Text>
           </Stack>
 
-          {/* Alertas de Error e Información */}
+          {/* Error */}
           {errorMsg && (
-            <Alert color="red" radius="md" title="Error de autenticación">
+            <Alert color="red" radius="md" title="Error de autenticación" withCloseButton onClose={() => setErrorMsg(null)}>
               {errorMsg}
             </Alert>
           )}
 
-          {successInfo && step === 2 && (
-            <Alert color="green" radius="md" title="Código enviado">
-              {successInfo}
-            </Alert>
-          )}
+          {/* Formulario */}
+          <form onSubmit={handleLogin}>
+            <Stack gap="md">
+              <TextInput
+                id="login-email"
+                label="Correo Electrónico"
+                placeholder="admin@ejemplo.com"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.currentTarget.value)}
+                styles={{
+                  label: { color: "#4A503D", fontFamily: "var(--font-subtitle)", fontWeight: 600 },
+                  input: { borderColor: "#797E5E" },
+                }}
+              />
 
-          {/* Formulario Paso 1: Ingreso de Correo */}
-          {step === 1 && (
-            <form onSubmit={handleRequestOtp}>
-              <Stack gap="md">
-                <TextInput
-                  label="Correo Electrónico Autorizado"
-                  placeholder="juanpemonv1994@gmail.com"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.currentTarget.value)}
-                  styles={{
-                    label: { color: "#4A503D", fontFamily: "var(--font-subtitle)", fontWeight: 600 },
-                    input: { borderColor: "#797E5E" },
-                  }}
-                />
+              <PasswordInput
+                id="login-password"
+                label="Contraseña"
+                placeholder="Tu contraseña"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.currentTarget.value)}
+                styles={{
+                  label: { color: "#4A503D", fontFamily: "var(--font-subtitle)", fontWeight: 600 },
+                  input: { borderColor: "#797E5E" },
+                }}
+              />
 
-                <Button
-                  type="submit"
-                  loading={loading}
-                  fullWidth
-                  radius="xl"
-                  size="md"
-                  style={{
-                    backgroundColor: "#797E5E",
-                    color: "#F7F4EB",
-                    fontFamily: "var(--font-subtitle)",
-                    fontWeight: 600,
-                  }}
-                >
-                  Iniciar sesión
-                </Button>
-              </Stack>
-            </form>
-          )}
+              <Button
+                id="login-submit"
+                type="submit"
+                loading={loading}
+                fullWidth
+                radius="xl"
+                size="md"
+                style={{
+                  backgroundColor: "#797E5E",
+                  color: "#F7F4EB",
+                  fontFamily: "var(--font-subtitle)",
+                  fontWeight: 600,
+                }}
+              >
+                Ingresar
+              </Button>
+            </Stack>
+          </form>
 
-          {/* Formulario Paso 2: Ingreso de Código de 6 dígitos */}
-          {step === 2 && (
-            <form onSubmit={handleVerifyOtp}>
-              <Stack gap="md" align="center">
-                <Box style={{ width: "100%", display: "flex", justifyContent: "center", py: 10 }}>
-                  <PinInput
-                    length={6}
-                    type="number"
-                    size="lg"
-                    value={otpCode}
-                    onChange={(val) => {
-                      setOtpCode(val);
-                      if (val.length === 6) {
-                        setErrorMsg(null);
-                      }
-                    }}
-                    styles={{
-                      input: { borderColor: "#797E5E", fontSize: "1.4rem" },
-                    }}
-                  />
-                </Box>
-
-                <Button
-                  type="submit"
-                  loading={loading}
-                  disabled={otpCode.length !== 6}
-                  fullWidth
-                  radius="xl"
-                  size="md"
-                  style={{
-                    backgroundColor: "#797E5E",
-                    color: "#F7F4EB",
-                    fontFamily: "var(--font-subtitle)",
-                    fontWeight: 600,
-                  }}
-                >
-                  Verificar código e Ingresar
-                </Button>
-
-                <Group justify="space-between" style={{ width: "100%" }}>
-                  <Button
-                    variant="subtle"
-                    size="xs"
-                    color="gray"
-                    onClick={handleReset}
-                  >
-                    ← Cambiar correo
-                  </Button>
-                  <Button
-                    variant="subtle"
-                    size="xs"
-                    color="green"
-                    onClick={handleRequestOtp}
-                    loading={loading}
-                  >
-                    Reenviar código
-                  </Button>
-                </Group>
-              </Stack>
-            </form>
-          )}
-
-          {/* Botón Volver a la Invitación */}
           <Button
             variant="subtle"
             color="gray"

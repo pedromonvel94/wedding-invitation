@@ -11,6 +11,7 @@ import {
   ActionIcon,
   Drawer,
   TextInput,
+  PasswordInput,
   Loader,
   Alert,
   Modal,
@@ -24,11 +25,10 @@ import {
   IconPlus,
   IconEdit,
   IconTrash,
-  IconMail,
   IconCheck,
   IconAlertCircle,
-  IconSend,
   IconRefresh,
+  IconKey,
 } from "@tabler/icons-react";
 import { api } from "../config/axios";
 import { useAuth } from "../context/AuthContext";
@@ -41,8 +41,7 @@ interface AdminUserItem {
   phoneNumber?: string;
   role: "SUPER_ADMIN" | "ADMIN";
   active: boolean;
-  isConfirmed: boolean;
-  inviteToken?: string;
+  mustChangePassword: boolean;
   createdAt: string;
 }
 
@@ -53,16 +52,13 @@ export function AdminManagementPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Drawer state for + New User
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] = useDisclosure(false);
   const [editingAdmin, setEditingAdmin] = useState<AdminUserItem | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  // Modal state for Delete confirmation
   const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
   const [adminToDelete, setAdminToDelete] = useState<AdminUserItem | null>(null);
 
-  // Form setup
   const form = useForm({
     initialValues: {
       name: "",
@@ -70,11 +66,15 @@ export function AdminManagementPage() {
       email: "",
       phoneNumber: "+57",
       role: "ADMIN" as "SUPER_ADMIN" | "ADMIN",
+      tempPassword: "",
+      resetPassword: "",
     },
     validate: {
       name: (value: string) => (value.trim().length > 0 ? null : "El nombre es obligatorio"),
       email: (value: string) => (/^\S+@\S+$/.test(value) ? null : "Correo electrónico inválido"),
       phoneNumber: (value: string) => (value.trim().length >= 10 ? null : "Número de celular inválido (mínimo 10 dígitos)"),
+      tempPassword: (value: string, values) =>
+        !editingAdmin && value.length < 6 ? "La contraseña temporal debe tener al menos 6 caracteres" : null,
     },
   });
 
@@ -115,6 +115,8 @@ export function AdminManagementPage() {
       email: adminUser.email,
       phoneNumber: adminUser.phoneNumber || "+57 ",
       role: adminUser.role,
+      tempPassword: "",
+      resetPassword: "",
     });
     openDrawer();
   };
@@ -126,8 +128,17 @@ export function AdminManagementPage() {
       setSuccessMsg(null);
 
       if (editingAdmin) {
-        // Actualizar Admin
-        const res = await api.put(`/admins/${editingAdmin.idAdmin}`, values);
+        const payload: Record<string, unknown> = {
+          name: values.name,
+          lastName: values.lastName,
+          email: values.email,
+          phoneNumber: values.phoneNumber,
+          role: values.role,
+        };
+        if (values.resetPassword && values.resetPassword.length >= 6) {
+          payload.resetPassword = values.resetPassword;
+        }
+        const res = await api.put(`/admins/${editingAdmin.idAdmin}`, payload);
         if (res.data.success) {
           setSuccessMsg("Administrador actualizado exitosamente.");
           closeDrawer();
@@ -136,10 +147,16 @@ export function AdminManagementPage() {
           setError(res.data.message || "Error al actualizar.");
         }
       } else {
-        // Crear Nuevo Admin + Enviar Invitación Email
-        const res = await api.post("/admins", values);
+        const res = await api.post("/admins", {
+          name: values.name,
+          lastName: values.lastName,
+          email: values.email,
+          phoneNumber: values.phoneNumber,
+          role: values.role,
+          tempPassword: values.tempPassword,
+        });
         if (res.data.success) {
-          setSuccessMsg(res.data.message || "Administrador invitado exitosamente por correo.");
+          setSuccessMsg(res.data.message || "Administrador creado exitosamente.");
           closeDrawer();
           fetchAdmins();
         } else {
@@ -163,20 +180,6 @@ export function AdminManagementPage() {
       }
     } catch {
       setError("No se pudo cambiar el estado del administrador.");
-    }
-  };
-
-  const handleResendInvite = async (adminUser: AdminUserItem) => {
-    try {
-      setSuccessMsg(null);
-      const res = await api.post(`/admins/${adminUser.idAdmin}/resend-invite`);
-      if (res.data.success) {
-        setSuccessMsg(`Correo de invitación reenviado a ${adminUser.email}`);
-      } else {
-        setError(res.data.message || "Error al reenviar invitación.");
-      }
-    } catch {
-      setError("Ocurrió un error al intentar reenviar la invitación.");
     }
   };
 
@@ -221,7 +224,7 @@ export function AdminManagementPage() {
             leftSection={<IconPlus size={16} />}
             onClick={handleOpenCreateDrawer}
           >
-            Invitar Administrador
+            Nuevo Administrador
           </Button>
         </Group>
       </Paper>
@@ -254,101 +257,99 @@ export function AdminManagementPage() {
           </Stack>
         ) : (
           <Box style={{ overflowX: "auto", width: "100%", WebkitOverflowScrolling: "touch" }}>
-            <Table highlightOnHover verticalSpacing="sm" style={{ minWidth: 750 }}>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Nombre Completo</Table.Th>
-                <Table.Th>Correo Electrónico</Table.Th>
-                <Table.Th>Celular</Table.Th>
-                <Table.Th>Invitación</Table.Th>
-                <Table.Th>Estado</Table.Th>
-                <Table.Th style={{ textAlign: "right" }}>Acciones</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {admins.map((adm) => (
-                <Table.Tr key={adm.idAdmin}>
-                  <Table.Td fw={600}>
-                    {adm.name} {adm.lastName || ""}
-                  </Table.Td>
-                  <Table.Td>{adm.email}</Table.Td>
-                  <Table.Td>{adm.phoneNumber || "N/A"}</Table.Td>
-                  <Table.Td>
-                    {adm.isConfirmed ? (
-                      <Badge color="green" variant="light" leftSection={<IconCheck size={12} />}>
-                        Confirmado
-                      </Badge>
-                    ) : (
-                      <Badge color="orange" variant="light" leftSection={<IconMail size={12} />}>
-                        Pendiente
-                      </Badge>
-                    )}
-                  </Table.Td>
-                  <Table.Td>
-                    <Switch
-                      checked={adm.active}
-                      onChange={() => handleToggleActive(adm)}
-                      disabled={adm.role === "SUPER_ADMIN"}
-                      size="sm"
-                      color="teal"
-                      label={adm.active ? "Activo" : "Inactivo"}
-                    />
-                  </Table.Td>
-                  <Table.Td style={{ textAlign: "right" }}>
-                    <Group gap="xs" justify="flex-end">
-                      {!adm.isConfirmed && (
-                        <Tooltip label="Reenviar correo de invitación">
-                          <ActionIcon
-                            variant="light"
-                            color="blue"
-                            onClick={() => handleResendInvite(adm)}
-                          >
-                            <IconSend size={16} />
-                          </ActionIcon>
-                        </Tooltip>
-                      )}
-
-                      <Tooltip label="Editar administrador">
-                        <ActionIcon
-                          variant="light"
-                          color="orange"
-                          onClick={() => handleOpenEditDrawer(adm)}
-                        >
-                          <IconEdit size={16} />
-                        </ActionIcon>
-                      </Tooltip>
-
-                      {adm.role !== "SUPER_ADMIN" && (
-                        <Tooltip label="Eliminar administrador">
-                          <ActionIcon
-                            variant="light"
-                            color="red"
-                            onClick={() => {
-                              setAdminToDelete(adm);
-                              openDeleteModal();
-                            }}
-                          >
-                            <IconTrash size={16} />
-                          </ActionIcon>
-                        </Tooltip>
-                      )}
-                    </Group>
-                  </Table.Td>
+            <Table highlightOnHover verticalSpacing="sm" style={{ minWidth: 700 }}>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Nombre Completo</Table.Th>
+                  <Table.Th>Correo Electrónico</Table.Th>
+                  <Table.Th>Celular</Table.Th>
+                  <Table.Th>Rol</Table.Th>
+                  <Table.Th>Contraseña</Table.Th>
+                  <Table.Th>Estado</Table.Th>
+                  <Table.Th style={{ textAlign: "right" }}>Acciones</Table.Th>
                 </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-        </Box>
+              </Table.Thead>
+              <Table.Tbody>
+                {admins.map((adm) => (
+                  <Table.Tr key={adm.idAdmin}>
+                    <Table.Td fw={600}>
+                      {adm.name} {adm.lastName || ""}
+                    </Table.Td>
+                    <Table.Td>{adm.email}</Table.Td>
+                    <Table.Td>{adm.phoneNumber || "N/A"}</Table.Td>
+                    <Table.Td>
+                      <Badge
+                        color={adm.role === "SUPER_ADMIN" ? "grape" : "blue"}
+                        variant="light"
+                        size="sm"
+                      >
+                        {adm.role === "SUPER_ADMIN" ? "Super Admin" : "Admin"}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      {adm.mustChangePassword ? (
+                        <Badge color="orange" variant="light" leftSection={<IconKey size={10} />} size="sm">
+                          Temporal
+                        </Badge>
+                      ) : (
+                        <Badge color="green" variant="light" leftSection={<IconCheck size={10} />} size="sm">
+                          Configurada
+                        </Badge>
+                      )}
+                    </Table.Td>
+                    <Table.Td>
+                      <Switch
+                        checked={adm.active}
+                        onChange={() => handleToggleActive(adm)}
+                        disabled={adm.role === "SUPER_ADMIN"}
+                        size="sm"
+                        color="teal"
+                        label={adm.active ? "Activo" : "Inactivo"}
+                      />
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: "right" }}>
+                      <Group gap="xs" justify="flex-end">
+                        <Tooltip label="Editar administrador">
+                          <ActionIcon
+                            variant="light"
+                            color="orange"
+                            onClick={() => handleOpenEditDrawer(adm)}
+                          >
+                            <IconEdit size={16} />
+                          </ActionIcon>
+                        </Tooltip>
+
+                        {adm.role !== "SUPER_ADMIN" && (
+                          <Tooltip label="Eliminar administrador">
+                            <ActionIcon
+                              variant="light"
+                              color="red"
+                              onClick={() => {
+                                setAdminToDelete(adm);
+                                openDeleteModal();
+                              }}
+                            >
+                              <IconTrash size={16} />
+                            </ActionIcon>
+                          </Tooltip>
+                        )}
+                      </Group>
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Box>
         )}
       </Paper>
 
-      {/* Drawer: + New User / Edit Admin */}
+      {/* Drawer: Crear / Editar Admin */}
       <Drawer
         opened={drawerOpened}
         onClose={closeDrawer}
         title={
           <Text fw={700} size="lg" style={{ color: "#4A3F35" }}>
-            {editingAdmin ? "Editar Administrador" : "Invitar Administrador"}
+            {editingAdmin ? "Editar Administrador" : "Nuevo Administrador"}
           </Text>
         }
         position="right"
@@ -373,24 +374,37 @@ export function AdminManagementPage() {
               label="Correo Electrónico"
               placeholder="admin@ejemplo.com"
               required
+              disabled={!!editingAdmin}
               {...form.getInputProps("email")}
             />
 
             <TextInput
-              label="Número de Celular (+57 WhatsApp)"
+              label="Número de Celular"
               placeholder="+57 300 123 4567"
               required
               {...form.getInputProps("phoneNumber")}
             />
 
-            <Paper p="sm" radius="md" style={{ backgroundColor: "#FAF8F5", border: "1px solid #EBE3D5" }}>
-              <Group gap="xs">
-                <IconMail size={18} color="#D4AF37" />
-                <Text size="xs" c="dimmed">
-                  Al registrar al administrador se generará automáticamente un correo electrónico con el botón <strong>[Aceptar Invitación]</strong>.
-                </Text>
-              </Group>
-            </Paper>
+            {/* Solo en creación: contraseña temporal obligatoria */}
+            {!editingAdmin && (
+              <PasswordInput
+                label="Contraseña Temporal"
+                placeholder="Mínimo 6 caracteres"
+                description="El admin deberá cambiarla en su primer inicio de sesión"
+                required
+                {...form.getInputProps("tempPassword")}
+              />
+            )}
+
+            {/* Solo en edición: resetear contraseña (opcional) */}
+            {editingAdmin && (
+              <PasswordInput
+                label="Restablecer Contraseña (opcional)"
+                placeholder="Deja vacío para no cambiar"
+                description="Si ingresas una nueva contraseña, el admin deberá cambiarla al iniciar sesión"
+                {...form.getInputProps("resetPassword")}
+              />
+            )}
 
             <Button
               type="submit"
@@ -399,7 +413,7 @@ export function AdminManagementPage() {
               loading={submitting}
               mt="lg"
             >
-              {editingAdmin ? "Guardar Cambios" : "Enviar Invitación"}
+              {editingAdmin ? "Guardar Cambios" : "Crear Administrador"}
             </Button>
           </Stack>
         </form>

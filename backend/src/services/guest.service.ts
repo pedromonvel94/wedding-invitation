@@ -117,17 +117,63 @@ async function updateGuest(
   phoneNumber: string,
   email?: string,
   side?: "PEDRO" | "CATA" | "BOTH",
+  invitationId?: number | null,
 ): Promise<{ success: boolean; message: string; guest?: Guest }> {
   try {
+    const existingGuest = await prisma.guest.findUnique({
+      where: { idGuest },
+    });
+
+    if (!existingGuest) {
+      return { success: false, message: "Invitado no encontrado" };
+    }
+
+    const currentInvId = existingGuest.invitationId;
+    let targetInvitationId = currentInvId;
+    let finalSide = side || existingGuest.side;
+
+    if (invitationId !== undefined && invitationId !== currentInvId) {
+      if (invitationId) {
+        const targetInv = await prisma.invitation.findUnique({
+          where: { idInvitation: invitationId },
+        });
+        if (targetInv) {
+          targetInvitationId = invitationId;
+          finalSide = targetInv.side;
+        }
+      } else {
+        const newInv = await prisma.invitation.create({
+          data: {
+            familyName: name,
+            side: finalSide,
+          },
+        });
+        targetInvitationId = newInv.idInvitation;
+      }
+
+      if (currentInvId && currentInvId !== targetInvitationId) {
+        const remainingCount = await prisma.guest.count({
+          where: { invitationId: currentInvId, idGuest: { not: idGuest } },
+        });
+        if (remainingCount === 0) {
+          await prisma.invitationDelivery.deleteMany({
+            where: { invitationId: currentInvId },
+          });
+          await prisma.invitation.delete({
+            where: { idInvitation: currentInvId },
+          });
+        }
+      }
+    }
+
     const guest = await prisma.guest.update({
-      where: {
-        idGuest,
-      },
+      where: { idGuest },
       data: {
         name,
         phoneNumber,
         email: email || null,
-        ...(side ? { side } : {}),
+        side: finalSide,
+        invitationId: targetInvitationId,
       },
     });
 

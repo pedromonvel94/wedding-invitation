@@ -68,7 +68,7 @@ async function updateGuest(
 ) {
   const { idGuest } = req.params;
 
-  const { name, phoneNumber, email, side } = req.body;
+  const { name, phoneNumber, email, side, invitationId } = req.body;
 
   try {
     const result = await guestService.updateGuest(
@@ -77,6 +77,7 @@ async function updateGuest(
       phoneNumber,
       email,
       side,
+      invitationId ? Number(invitationId) : null,
     );
 
     res.status(result.success ? 200 : 404).json(result);

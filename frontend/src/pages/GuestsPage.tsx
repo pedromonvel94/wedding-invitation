@@ -68,6 +68,57 @@ interface InvitationSimple {
   side: "PEDRO" | "CATA" | "BOTH";
 }
 
+const COUNTRY_CODES = [
+  { value: "+57", label: "🇨🇴 Colombia (+57)" },
+  { value: "+1", label: "🇺🇸/🇨🇦 EE.UU. / Canadá (+1)" },
+  { value: "+34", label: "🇪🇸 España (+34)" },
+  { value: "+52", label: "🇲🇽 México (+52)" },
+  { value: "+54", label: "🇦🇷 Argentina (+54)" },
+  { value: "+56", label: "🇨🇱 Chile (+56)" },
+  { value: "+51", label: "🇵🇪 Perú (+51)" },
+  { value: "+593", label: "🇪🇨 Ecuador (+593)" },
+  { value: "+58", label: "🇻🇪 Venezuela (+58)" },
+  { value: "+507", label: "🇵🇦 Panamá (+507)" },
+  { value: "+506", label: "🇨🇷 Costa Rica (+506)" },
+  { value: "+502", label: "🇬🇹 Guatemala (+502)" },
+  { value: "+503", label: "🇸🇻 El Salvador (+503)" },
+  { value: "+55", label: "🇧🇷 Brasil (+55)" },
+  { value: "+44", label: "🇬🇧 Reino Unido (+44)" },
+  { value: "+33", label: "🇫🇷 Francia (+33)" },
+  { value: "+49", label: "🇩🇪 Alemania (+49)" },
+  { value: "+39", label: "🇮🇹 Italia (+39)" },
+  { value: "+41", label: "🇨🇭 Suiza (+41)" },
+  { value: "+61", label: "🇦🇺 Australia (+61)" },
+  { value: "OTHER", label: "✏️ Otro indicativo..." },
+];
+
+const parsePhoneNumber = (phone: string) => {
+  const trimmed = (phone || "").trim();
+  if (!trimmed) {
+    return { countryCode: "+57", customCountryCode: "", phoneBody: "" };
+  }
+  if (trimmed.startsWith("+")) {
+    const matched = COUNTRY_CODES.find(
+      (c) => c.value !== "OTHER" && trimmed.startsWith(c.value)
+    );
+    if (matched) {
+      const rest = trimmed.slice(matched.value.length).trim();
+      return { countryCode: matched.value, customCountryCode: "", phoneBody: rest };
+    } else {
+      const matchCustom = trimmed.match(/^(\+\d{1,4})\s*(.*)$/);
+      if (matchCustom) {
+        return {
+          countryCode: "OTHER",
+          customCountryCode: matchCustom[1],
+          phoneBody: matchCustom[2],
+        };
+      }
+    }
+  }
+  const cleanedBody = trimmed.replace(/^57\s*/, "");
+  return { countryCode: "+57", customCountryCode: "", phoneBody: cleanedBody };
+};
+
 export function GuestsPage() {
   const { admin } = useAuth();
   const [guests, setGuests] = useState<GuestItem[]>([]);
@@ -91,14 +142,20 @@ export function GuestsPage() {
   const form = useForm({
     initialValues: {
       name: "",
-      phoneNumber: "+57 ",
+      countryCode: "+57",
+      customCountryCode: "",
+      phoneBody: "",
       email: "",
       side: "" as "" | "PEDRO" | "CATA" | "BOTH",
       invitationId: "",
     },
     validate: {
       name: (val: string) => (val.trim().length > 0 ? null : "El nombre es requerido"),
-      phoneNumber: (val: string) => (val.trim().length >= 10 ? null : "Teléfono celular inválido"),
+      phoneBody: (val: string) => (val.trim().length >= 6 ? null : "Número de celular inválido"),
+      customCountryCode: (val: string, values) =>
+        values.countryCode === "OTHER" && !val.trim().startsWith("+")
+          ? "El indicativo debe empezar por + (ej. +43)"
+          : null,
       side: (val: string) => (val ? null : "Debes seleccionar de qué lado es el invitado"),
     },
   });
@@ -134,7 +191,9 @@ export function GuestsPage() {
     form.reset();
     form.setValues({
       name: "",
-      phoneNumber: "+57 ",
+      countryCode: "+57",
+      customCountryCode: "",
+      phoneBody: "",
       email: "",
       side: "",
       invitationId: "",
@@ -144,9 +203,12 @@ export function GuestsPage() {
 
   const handleOpenEdit = (guest: GuestItem) => {
     setEditingGuest(guest);
+    const parsedPhone = parsePhoneNumber(guest.phoneNumber);
     form.setValues({
       name: guest.name,
-      phoneNumber: guest.phoneNumber,
+      countryCode: parsedPhone.countryCode,
+      customCountryCode: parsedPhone.customCountryCode,
+      phoneBody: parsedPhone.phoneBody,
       email: guest.email || "",
       side: guest.side || guest.invitation?.side || "",
       invitationId: guest.invitationId ? String(guest.invitationId) : "",
@@ -159,12 +221,16 @@ export function GuestsPage() {
       setSubmitting(true);
       setError(null);
 
+      const prefix = values.countryCode === "OTHER" ? values.customCountryCode.trim() : values.countryCode;
+      const fullPhoneNumber = `${prefix} ${values.phoneBody.trim()}`;
+
       if (editingGuest) {
         const res = await api.put(`/guests/${editingGuest.idGuest}`, {
           name: values.name,
-          phoneNumber: values.phoneNumber,
+          phoneNumber: fullPhoneNumber,
           email: values.email || undefined,
           side: values.side,
+          invitationId: values.invitationId ? Number(values.invitationId) : null,
         });
         if (res.data.success) {
           setSuccessMsg("Invitado actualizado correctamente.");
@@ -176,7 +242,7 @@ export function GuestsPage() {
       } else {
         const res = await api.post("/guests", {
           name: values.name,
-          phoneNumber: values.phoneNumber,
+          phoneNumber: fullPhoneNumber,
           email: values.email || undefined,
           side: values.side,
           invitationId: values.invitationId ? Number(values.invitationId) : undefined,
@@ -214,8 +280,10 @@ export function GuestsPage() {
   };
 
   const handleToggleSent = async (gst: GuestItem) => {
+    const isSent = gst.invitation?.invitationDeliveries?.some((d) => d.status === "SENT") || false;
+    const newStatus = isSent ? "PENDING" : "SENT";
     try {
-      await api.post(`/invitations/${gst.invitationId}/mark-sent`, { channel: "WHATSAPP" });
+      await api.post(`/invitations/${gst.invitationId}/mark-sent`, { channel: "WHATSAPP", status: newStatus });
       fetchData();
     } catch {
       setError("No se pudo actualizar el estado de envío.");
@@ -223,9 +291,21 @@ export function GuestsPage() {
   };
 
   const handleSendWhatsApp = async (gst: GuestItem) => {
-    const phone = gst.phoneNumber || "";
-    const cleanedPhone = phone.replace(/\D/g, "");
-    const formattedPhone = cleanedPhone.startsWith("57") ? cleanedPhone : `57${cleanedPhone}`;
+    const phone = (gst.phoneNumber || "").trim();
+    let formattedPhone = "";
+
+    if (phone.startsWith("+")) {
+      // Si ya tiene indicativo internacional explícito (+1 2035568068 -> 12035568068)
+      formattedPhone = phone.replace(/\D/g, "");
+    } else {
+      // Para números legacy sin '+'
+      const cleanDigits = phone.replace(/\D/g, "");
+      if (cleanDigits.startsWith("57") && cleanDigits.length >= 12) {
+        formattedPhone = cleanDigits;
+      } else {
+        formattedPhone = `57${cleanDigits}`;
+      }
+    }
 
     const invitationUrl = `${window.location.origin}/?invitation=${gst.invitationId}`;
     
@@ -245,7 +325,7 @@ export function GuestsPage() {
     window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(messageText)}`, "_blank");
 
     try {
-      await api.post(`/invitations/${gst.invitationId}/mark-sent`, { channel: "WHATSAPP" });
+      await api.post(`/invitations/${gst.invitationId}/mark-sent`, { channel: "WHATSAPP", status: "SENT" });
       fetchData();
     } catch {
       // Ignorar si falla el registro silencioso
@@ -378,13 +458,14 @@ export function GuestsPage() {
                   return (
                     <Table.Tr key={gst.idGuest}>
                       <Table.Td>
-                        <Tooltip label={isSent ? "Invitación Enviada (Clic para cambiar)" : "Marcar como Enviada"}>
+                        <Tooltip label={isSent ? "Enviada (Clic para desmarcar)" : "Marcar como enviada"}>
                           <Group gap={6} style={{ cursor: "pointer" }} onClick={() => handleToggleSent(gst)}>
                             <Checkbox
                               checked={isSent}
                               onChange={() => {}}
                               color="teal"
                               size="sm"
+                              style={{ cursor: "pointer" }}
                             />
                             {isSent ? (
                               <Badge size="xs" color="teal" variant="light">
@@ -493,6 +574,7 @@ export function GuestsPage() {
         onClose={closeModal}
         title={editingGuest ? "Editar Invitado" : "Nuevo Invitado"}
         centered
+        size="lg"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="md">
@@ -503,35 +585,62 @@ export function GuestsPage() {
               {...form.getInputProps("name")}
             />
 
-            <TextInput
-              label="Teléfono / Celular (+57)"
-              placeholder="+57 320 583 2210"
-              required
-              {...form.getInputProps("phoneNumber")}
-            />
+            <Stack gap={4}>
+              <Text size="sm" fw={500}>Teléfono / Celular con Indicativo de País *</Text>
+              <Group align="flex-start" wrap="wrap" gap="xs">
+                <Select
+                  aria-label="Indicativo de País"
+                  data={COUNTRY_CODES}
+                  value={form.values.countryCode}
+                  onChange={(val) => form.setFieldValue("countryCode", val || "+57")}
+                  style={{ flex: "1 1 180px", minWidth: 160 }}
+                  searchable
+                />
+                {form.values.countryCode === "OTHER" && (
+                  <TextInput
+                    aria-label="Indicativo Personalizado"
+                    placeholder="Ej. +43"
+                    required
+                    {...form.getInputProps("customCountryCode")}
+                    style={{ flex: "1 1 110px", minWidth: 100 }}
+                  />
+                )}
+                <TextInput
+                  aria-label="Número de Celular"
+                  placeholder="Ej. 3205832210 o 2035568068"
+                  required
+                  {...form.getInputProps("phoneBody")}
+                  style={{ flex: "2 1 180px", minWidth: 160 }}
+                />
+              </Group>
+              {form.errors.phoneBody && (
+                <Text color="red" size="xs">{form.errors.phoneBody}</Text>
+              )}
+              {form.errors.customCountryCode && (
+                <Text color="red" size="xs">{form.errors.customCountryCode}</Text>
+              )}
+            </Stack>
 
-            {!editingGuest && (
-              <Select
-                label="Familia / Invitación Asignada (Opcional)"
-                placeholder="Selecciona la familia o déjalo para invitación individual"
-                clearable
-                data={invitationsList.map((inv) => ({
-                  value: String(inv.idInvitation),
-                  label: `${inv.familyName} (${inv.side === "PEDRO" ? "💙 Pedro" : inv.side === "CATA" ? "🩷 Cata" : "💑 Ambos"})`,
-                }))}
-                value={form.values.invitationId}
-                onChange={(val) => {
-                  const selectedInvId = val || "";
-                  form.setFieldValue("invitationId", selectedInvId);
-                  if (selectedInvId) {
-                    const selectedInv = invitationsList.find((i) => String(i.idInvitation) === selectedInvId);
-                    if (selectedInv) {
-                      form.setFieldValue("side", selectedInv.side);
-                    }
+            <Select
+              label="Familia / Invitación Asignada (Opcional)"
+              placeholder="Selecciona la familia o déjalo para invitación individual"
+              clearable
+              data={invitationsList.map((inv) => ({
+                value: String(inv.idInvitation),
+                label: `${inv.familyName} (${inv.side === "PEDRO" ? "💙 Pedro" : inv.side === "CATA" ? "🩷 Cata" : "💑 Ambos"})`,
+              }))}
+              value={form.values.invitationId}
+              onChange={(val) => {
+                const selectedInvId = val || "";
+                form.setFieldValue("invitationId", selectedInvId);
+                if (selectedInvId) {
+                  const selectedInv = invitationsList.find((i) => String(i.idInvitation) === selectedInvId);
+                  if (selectedInv) {
+                    form.setFieldValue("side", selectedInv.side);
                   }
-                }}
-              />
-            )}
+                }
+              }}
+            />
 
             <Select
               label="Invitado por (Lado de la Familia)"

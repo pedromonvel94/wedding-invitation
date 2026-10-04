@@ -174,25 +174,36 @@ async function getAllInvitations() {
 
 async function markAsSent(
   idInvitation: number,
-  channel: "WHATSAPP" | "EMAIL" = "WHATSAPP"
+  channel: "WHATSAPP" | "EMAIL" = "WHATSAPP",
+  status?: "SENT" | "PENDING"
 ) {
   try {
     const existing = await prisma.invitationDelivery.findFirst({
       where: { invitationId: idInvitation, channel },
     });
 
+    const targetStatus: "SENT" | "PENDING" =
+      status !== undefined
+        ? status
+        : existing?.status === "SENT"
+        ? "PENDING"
+        : "SENT";
+
     if (existing) {
       await prisma.invitationDelivery.update({
         where: { idDelivery: existing.idDelivery },
-        data: { status: "SENT", sentAt: new Date() },
+        data: {
+          status: targetStatus,
+          sentAt: targetStatus === "SENT" ? new Date() : null,
+        },
       });
     } else {
       await prisma.invitationDelivery.create({
         data: {
           invitationId: idInvitation,
           channel,
-          status: "SENT",
-          sentAt: new Date(),
+          status: targetStatus,
+          sentAt: targetStatus === "SENT" ? new Date() : null,
         },
       });
     }

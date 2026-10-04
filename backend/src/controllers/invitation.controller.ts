@@ -116,12 +116,13 @@ async function markAsSent(
   next: NextFunction,
 ) {
   const { idInvitation } = req.params;
-  const { channel } = req.body;
+  const { channel, status } = req.body;
 
   try {
     const result = await invitationService.markAsSent(
       Number(idInvitation),
       channel || "WHATSAPP",
+      status,
     );
     res.status(result.success ? 200 : 400).json(result);
   } catch (error) {

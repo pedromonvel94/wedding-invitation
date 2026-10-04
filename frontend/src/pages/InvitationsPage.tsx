@@ -170,7 +170,22 @@ export function InvitationsPage() {
     }
   };
 
+  const handleToggleSent = async (inv: InvitationItem) => {
+    const isSent = inv.invitationDeliveries.some((d) => d.status === "SENT");
+    const newStatus = isSent ? "PENDING" : "SENT";
+    try {
+      await api.post(`/invitations/${inv.idInvitation}/mark-sent`, { channel: "WHATSAPP", status: newStatus });
+      fetchInvitations();
+    } catch {
+      setError("No se pudo actualizar el estado de envío.");
+    }
+  };
+
   const filteredInvitations = invitations.filter((inv) => {
+    // Filtrar para mostrar únicamente grupos de familias (2 o más integrantes, o grupos recién creados sin integrantes aún)
+    const isFamilyGroup = inv.guests.length > 1 || inv.guests.length === 0;
+    if (!isFamilyGroup) return false;
+
     const matchSearch = inv.familyName.toLowerCase().includes(search.toLowerCase());
     const side = inv.side || "BOTH";
     const matchSide = sideFilter === "ALL" || side === sideFilter;
@@ -186,7 +201,7 @@ export function InvitationsPage() {
               👨‍👩‍👧‍👦 Gestión de Familias
             </Title>
             <Text size="sm" c="gray.3">
-              Crea y administra los grupos o familias de la boda. Especifica si pertenecen al lado de Pedro o de Cata.
+              Crea y administra los grupos o familias de la boda (2 o más integrantes). Los invitados individuales se muestran únicamente en la lista de invitados.
             </Text>
           </Stack>
           <Button
@@ -308,9 +323,16 @@ export function InvitationsPage() {
                         </Badge>
                       </Table.Td>
                       <Table.Td>
-                        <Badge color={isSent ? "green" : "yellow"} variant="filled">
-                          {isSent ? "Entregada" : "Sin Enviar"}
-                        </Badge>
+                        <Tooltip label={isSent ? "Entregada (Clic para marcar como no enviada)" : "Marcar como enviada"}>
+                          <Badge
+                            color={isSent ? "green" : "yellow"}
+                            variant="filled"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleToggleSent(inv)}
+                          >
+                            {isSent ? "Entregada" : "Sin Enviar"}
+                          </Badge>
+                        </Tooltip>
                       </Table.Td>
                       <Table.Td style={{ textAlign: "right" }}>
                         <Group gap="xs" justify="flex-end">

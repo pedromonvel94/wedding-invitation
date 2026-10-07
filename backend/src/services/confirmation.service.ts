@@ -72,13 +72,18 @@ async function updateConfirmation(
   confirmation?: Confirmation;
 }> {
   try {
-    const confirmation = await prisma.confirmation.update({
+    const confirmation = await prisma.confirmation.upsert({
       where: {
         guestId,
       },
-      data: {
+      create: {
+        guestId,
         status,
-        responseDate,
+        responseDate: responseDate || new Date(),
+      },
+      update: {
+        status,
+        responseDate: responseDate || new Date(),
       },
     });
 

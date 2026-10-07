@@ -17,6 +17,7 @@ import {
   Tooltip,
   Checkbox,
   Box,
+  Tabs,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
@@ -148,6 +149,7 @@ export function GuestsPage() {
       email: "",
       side: "" as "" | "PEDRO" | "CATA" | "BOTH",
       invitationId: "",
+      confirmationStatus: "PENDING" as "PENDING" | "CONFIRMED" | "DECLINED",
     },
     validate: {
       name: (val: string) => (val.trim().length > 0 ? null : "El nombre es requerido"),
@@ -197,6 +199,7 @@ export function GuestsPage() {
       email: "",
       side: "",
       invitationId: "",
+      confirmationStatus: "PENDING",
     });
     openModal();
   };
@@ -212,6 +215,7 @@ export function GuestsPage() {
       email: guest.email || "",
       side: guest.side || guest.invitation?.side || "",
       invitationId: guest.invitationId ? String(guest.invitationId) : "",
+      confirmationStatus: guest.confirmation?.status || "PENDING",
     });
     openModal();
   };
@@ -233,6 +237,11 @@ export function GuestsPage() {
           invitationId: values.invitationId ? Number(values.invitationId) : null,
         });
         if (res.data.success) {
+          // Guardar estado de confirmación
+          await api.put(`/confirmations/${editingGuest.idGuest}`, {
+            status: values.confirmationStatus,
+          });
+
           setSuccessMsg("Invitado actualizado correctamente.");
           closeModal();
           fetchData();
@@ -248,6 +257,12 @@ export function GuestsPage() {
           invitationId: values.invitationId ? Number(values.invitationId) : undefined,
         });
         if (res.data.success) {
+          const newGuestId = res.data.guest?.idGuest || res.data.data?.idGuest;
+          if (newGuestId) {
+            await api.put(`/confirmations/${newGuestId}`, {
+              status: values.confirmationStatus,
+            });
+          }
           setSuccessMsg("Invitado registrado exitosamente.");
           closeModal();
           fetchData();
@@ -577,105 +592,143 @@ export function GuestsPage() {
         size="lg"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack gap="md">
-            <TextInput
-              label="Nombre Completo"
-              placeholder="Ej. María Montoya"
-              required
-              {...form.getInputProps("name")}
-            />
+          <Tabs defaultValue="info" color="amber">
+            <Tabs.List mb="md">
+              <Tabs.Tab value="info" leftSection={<IconEdit size={14} />}>
+                Información General
+              </Tabs.Tab>
+              <Tabs.Tab value="confirmation" leftSection={<IconUserCheck size={14} />}>
+                Confirmar Asistencia
+              </Tabs.Tab>
+            </Tabs.List>
 
-            <Stack gap={4}>
-              <Text size="sm" fw={500}>Teléfono / Celular con Indicativo de País *</Text>
-              <Group align="flex-start" wrap="wrap" gap="xs">
-                <Select
-                  aria-label="Indicativo de País"
-                  data={COUNTRY_CODES}
-                  value={form.values.countryCode}
-                  onChange={(val) => form.setFieldValue("countryCode", val || "+57")}
-                  style={{ flex: "1 1 180px", minWidth: 160 }}
-                  searchable
-                />
-                {form.values.countryCode === "OTHER" && (
-                  <TextInput
-                    aria-label="Indicativo Personalizado"
-                    placeholder="Ej. +43"
-                    required
-                    {...form.getInputProps("customCountryCode")}
-                    style={{ flex: "1 1 110px", minWidth: 100 }}
-                  />
-                )}
+            <Tabs.Panel value="info">
+              <Stack gap="md">
                 <TextInput
-                  aria-label="Número de Celular"
-                  placeholder="Ej. 3205832210 o 2035568068"
+                  label="Nombre Completo"
+                  placeholder="Ej. María Montoya"
                   required
-                  {...form.getInputProps("phoneBody")}
-                  style={{ flex: "2 1 180px", minWidth: 160 }}
+                  {...form.getInputProps("name")}
                 />
-              </Group>
-              {form.errors.phoneBody && (
-                <Text color="red" size="xs">{form.errors.phoneBody}</Text>
-              )}
-              {form.errors.customCountryCode && (
-                <Text color="red" size="xs">{form.errors.customCountryCode}</Text>
-              )}
-            </Stack>
 
-            <Select
-              label="Familia / Invitación Asignada (Opcional)"
-              placeholder="Selecciona la familia o déjalo para invitación individual"
-              clearable
-              data={invitationsList.map((inv) => ({
-                value: String(inv.idInvitation),
-                label: `${inv.familyName} (${inv.side === "PEDRO" ? "💙 Pedro" : inv.side === "CATA" ? "🩷 Cata" : "💑 Ambos"})`,
-              }))}
-              value={form.values.invitationId}
-              onChange={(val) => {
-                const selectedInvId = val || "";
-                form.setFieldValue("invitationId", selectedInvId);
-                if (selectedInvId) {
-                  const selectedInv = invitationsList.find((i) => String(i.idInvitation) === selectedInvId);
-                  if (selectedInv) {
-                    form.setFieldValue("side", selectedInv.side);
+                <Stack gap={4}>
+                  <Text size="sm" fw={500}>Teléfono / Celular con Indicativo de País *</Text>
+                  <Group align="flex-start" wrap="wrap" gap="xs">
+                    <Select
+                      aria-label="Indicativo de País"
+                      data={COUNTRY_CODES}
+                      value={form.values.countryCode}
+                      onChange={(val) => form.setFieldValue("countryCode", val || "+57")}
+                      style={{ flex: "1 1 180px", minWidth: 160 }}
+                      searchable
+                    />
+                    {form.values.countryCode === "OTHER" && (
+                      <TextInput
+                        aria-label="Indicativo Personalizado"
+                        placeholder="Ej. +43"
+                        required
+                        {...form.getInputProps("customCountryCode")}
+                        style={{ flex: "1 1 110px", minWidth: 100 }}
+                      />
+                    )}
+                    <TextInput
+                      aria-label="Número de Celular"
+                      placeholder="Ej. 3205832210 o 2035568068"
+                      required
+                      {...form.getInputProps("phoneBody")}
+                      style={{ flex: "2 1 180px", minWidth: 160 }}
+                    />
+                  </Group>
+                  {form.errors.phoneBody && (
+                    <Text color="red" size="xs">{form.errors.phoneBody}</Text>
+                  )}
+                  {form.errors.customCountryCode && (
+                    <Text color="red" size="xs">{form.errors.customCountryCode}</Text>
+                  )}
+                </Stack>
+
+                <Select
+                  label="Familia / Invitación Asignada (Opcional)"
+                  placeholder="Selecciona la familia o déjalo para invitación individual"
+                  clearable
+                  data={invitationsList.map((inv) => ({
+                    value: String(inv.idInvitation),
+                    label: `${inv.familyName} (${inv.side === "PEDRO" ? "💙 Pedro" : inv.side === "CATA" ? "🩷 Cata" : "💑 Ambos"})`,
+                  }))}
+                  value={form.values.invitationId}
+                  onChange={(val) => {
+                    const selectedInvId = val || "";
+                    form.setFieldValue("invitationId", selectedInvId);
+                    if (selectedInvId) {
+                      const selectedInv = invitationsList.find((i) => String(i.idInvitation) === selectedInvId);
+                      if (selectedInv) {
+                        form.setFieldValue("side", selectedInv.side);
+                      }
+                    }
+                  }}
+                />
+
+                <Select
+                  label="Invitado por (Lado de la Familia)"
+                  placeholder="Selecciona el lado (Pedro, Cata o Ambos)"
+                  clearable={!form.values.invitationId}
+                  disabled={!!form.values.invitationId}
+                  data={[
+                    { value: "PEDRO", label: "💙 Pedro" },
+                    { value: "CATA", label: "🩷 Cata" },
+                    { value: "BOTH", label: "💑 Ambos / Amigos en Común" },
+                  ]}
+                  required
+                  {...form.getInputProps("side")}
+                  description={
+                    form.values.invitationId
+                      ? "🔒 Lado asignado automáticamente por la familia seleccionada."
+                      : undefined
                   }
-                }
-              }}
-            />
+                />
 
-            <Select
-              label="Invitado por (Lado de la Familia)"
-              placeholder="Selecciona el lado (Pedro, Cata o Ambos)"
-              clearable={!form.values.invitationId}
-              disabled={!!form.values.invitationId}
-              data={[
-                { value: "PEDRO", label: "💙 Pedro" },
-                { value: "CATA", label: "🩷 Cata" },
-                { value: "BOTH", label: "💑 Ambos / Amigos en Común" },
-              ]}
-              required
-              {...form.getInputProps("side")}
-              description={
-                form.values.invitationId
-                  ? "🔒 Lado asignado automáticamente por la familia seleccionada."
-                  : undefined
-              }
-            />
+                <TextInput
+                  label="Correo Electrónico (Opcional)"
+                  placeholder="maria@ejemplo.com"
+                  {...form.getInputProps("email")}
+                />
+              </Stack>
+            </Tabs.Panel>
 
-            <TextInput
-              label="Correo Electrónico (Opcional)"
-              placeholder="maria@ejemplo.com"
-              {...form.getInputProps("email")}
-            />
+            <Tabs.Panel value="confirmation">
+              <Paper p="md" radius="md" withBorder style={{ backgroundColor: "#FAF8F5" }}>
+                <Stack gap="sm">
+                  <Text size="sm" fw={600} style={{ color: "#4A3F35" }}>
+                    Estado de Asistencia del Invitado
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    Permite a los administradores confirmar o declinar manualmente la asistencia de este invitado si no puede hacerlo desde la web.
+                  </Text>
 
-            <Group justify="flex-end" mt="md">
-              <Button variant="outline" color="gray" onClick={closeModal}>
-                Cancelar
-              </Button>
-              <Button style={{ backgroundColor: "#797E5E", color: "#FFF" }} type="submit" loading={submitting}>
-                {editingGuest ? "Guardar Cambios" : "Registrar Invitado"}
-              </Button>
-            </Group>
-          </Stack>
+                  <Select
+                    label="Estado de Confirmación"
+                    data={[
+                      { value: "CONFIRMED", label: "✅ Invitado Confirmado (Asistirá)" },
+                      { value: "DECLINED", label: "❌ No puede ir (Declina)" },
+                      { value: "PENDING", label: "⏳ Pendiente por confirmar" },
+                    ]}
+                    value={form.values.confirmationStatus}
+                    onChange={(val) => form.setFieldValue("confirmationStatus", (val as "PENDING" | "CONFIRMED" | "DECLINED") || "PENDING")}
+                    style={{ width: "100%" }}
+                  />
+                </Stack>
+              </Paper>
+            </Tabs.Panel>
+          </Tabs>
+
+          <Group justify="flex-end" mt="lg">
+            <Button variant="outline" color="gray" onClick={closeModal}>
+              Cancelar
+            </Button>
+            <Button style={{ backgroundColor: "#797E5E", color: "#FFF" }} type="submit" loading={submitting}>
+              {editingGuest ? "Guardar Cambios" : "Registrar Invitado"}
+            </Button>
+          </Group>
         </form>
       </Modal>
 

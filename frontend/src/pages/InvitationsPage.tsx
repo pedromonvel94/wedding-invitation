@@ -17,6 +17,7 @@ import {
   Tooltip,
   Menu,
   Box,
+  Tabs,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
@@ -31,6 +32,7 @@ import {
   IconDotsVertical,
   IconUsers,
   IconHeart,
+  IconUserCheck,
 } from "@tabler/icons-react";
 import { api } from "../config/axios";
 
@@ -71,6 +73,7 @@ export function InvitationsPage() {
   const [modalOpened, { open: openModal, close: closeModal }] = useDisclosure(false);
   const [editingInvitation, setEditingInvitation] = useState<InvitationItem | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [familyConfirmations, setFamilyConfirmations] = useState<Record<number, "PENDING" | "CONFIRMED" | "DECLINED">>({});
 
   // Modal Delete
   const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
@@ -109,12 +112,18 @@ export function InvitationsPage() {
 
   const handleOpenCreate = () => {
     setEditingInvitation(null);
+    setFamilyConfirmations({});
     form.reset();
     openModal();
   };
 
   const handleOpenEdit = (inv: InvitationItem) => {
     setEditingInvitation(inv);
+    const initialConf: Record<number, "PENDING" | "CONFIRMED" | "DECLINED"> = {};
+    inv.guests.forEach((g) => {
+      initialConf[g.idGuest] = g.confirmation?.status || "PENDING";
+    });
+    setFamilyConfirmations(initialConf);
     form.setValues({
       familyName: inv.familyName,
       side: inv.side || "BOTH",
@@ -130,6 +139,14 @@ export function InvitationsPage() {
       if (editingInvitation) {
         const res = await api.put(`/invitations/${editingInvitation.idInvitation}`, values);
         if (res.data.success) {
+          if (editingInvitation.guests && editingInvitation.guests.length > 0) {
+            await Promise.all(
+              editingInvitation.guests.map((g) => {
+                const status = familyConfirmations[g.idGuest] || "PENDING";
+                return api.put(`/confirmations/${g.idGuest}`, { status });
+              })
+            );
+          }
           setSuccessMsg("Invitación actualizada correctamente.");
           closeModal();
           fetchInvitations();
@@ -382,40 +399,108 @@ export function InvitationsPage() {
         onClose={closeModal}
         title={editingInvitation ? "Editar Familia" : "Nueva Familia"}
         centered
+        size="lg"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
-          <Stack gap="md">
-            <TextInput
-              label="Nombre de la Familia o Grupo"
-              placeholder="Ej. Familia Pérez Montoya"
-              required
-              {...form.getInputProps("familyName")}
-            />
-
-            <Select
-              label="Invitado por (Lado de la Familia)"
-              data={[
-                { value: "PEDRO", label: "💙 Pedro" },
-                { value: "CATA", label: "🩷 Cata" },
-                { value: "BOTH", label: "💑 Ambos / Amigos en Común" },
-              ]}
-              required
-              {...form.getInputProps("side")}
-            />
-
-            <Group justify="flex-end" mt="md">
-              <Button variant="outline" color="gray" onClick={closeModal}>
-                Cancelar
-              </Button>
-              <Button
-                style={{ backgroundColor: "#4A3F35", color: "#FFFFFF", fontWeight: 600 }}
-                type="submit"
-                loading={submitting}
+          <Tabs defaultValue="info" color="amber">
+            <Tabs.List mb="md">
+              <Tabs.Tab value="info" leftSection={<IconEdit size={14} />}>
+                Información de la Familia
+              </Tabs.Tab>
+              <Tabs.Tab
+                value="confirmations"
+                leftSection={<IconUserCheck size={14} />}
               >
-                {editingInvitation ? "Guardar Cambios" : "Crear Familia"}
-              </Button>
-            </Group>
-          </Stack>
+                Confirmar Integrantes ({editingInvitation?.guests.length || 0})
+              </Tabs.Tab>
+            </Tabs.List>
+
+            <Tabs.Panel value="info">
+              <Stack gap="md">
+                <TextInput
+                  label="Nombre de la Familia o Grupo"
+                  placeholder="Ej. Familia Pérez Montoya"
+                  required
+                  {...form.getInputProps("familyName")}
+                />
+
+                <Select
+                  label="Invitado por (Lado de la Familia)"
+                  data={[
+                    { value: "PEDRO", label: "💙 Pedro" },
+                    { value: "CATA", label: "🩷 Cata" },
+                    { value: "BOTH", label: "💑 Ambos / Amigos en Común" },
+                  ]}
+                  required
+                  {...form.getInputProps("side")}
+                />
+              </Stack>
+            </Tabs.Panel>
+
+            <Tabs.Panel value="confirmations">
+              <Stack gap="md">
+                <Text size="xs" c="dimmed">
+                  Administra si cada integrante de esta familia confirmó su asistencia o no podrá asistir.
+                </Text>
+
+                {editingInvitation && editingInvitation.guests.length > 0 ? (
+                  <Stack gap="sm">
+                    {editingInvitation.guests.map((g) => {
+                      const currentStatus = familyConfirmations[g.idGuest] || "PENDING";
+                      return (
+                        <Paper key={g.idGuest} p="xs" radius="sm" withBorder style={{ backgroundColor: "#FAF8F5" }}>
+                          <Group justify="space-between" align="center" wrap="wrap" gap="xs">
+                            <Stack gap={2}>
+                              <Text size="sm" fw={600} style={{ color: "#4A3F35" }}>
+                                {g.name}
+                              </Text>
+                              <Text size="xs" c="dimmed">
+                                {g.phoneNumber}
+                              </Text>
+                            </Stack>
+
+                            <Select
+                              aria-label={`Confirmación para ${g.name}`}
+                              data={[
+                                { value: "CONFIRMED", label: "✅ Invitado Confirmado" },
+                                { value: "DECLINED", label: "❌ No puede ir" },
+                                { value: "PENDING", label: "⏳ Pendiente" },
+                              ]}
+                              value={currentStatus}
+                              onChange={(val) =>
+                                setFamilyConfirmations((prev) => ({
+                                  ...prev,
+                                  [g.idGuest]: (val as "PENDING" | "CONFIRMED" | "DECLINED") || "PENDING",
+                                }))
+                              }
+                              style={{ width: 190 }}
+                            />
+                          </Group>
+                        </Paper>
+                      );
+                    })}
+                  </Stack>
+                ) : (
+                  <Alert icon={<IconAlertCircle size={16} />} color="blue" title="Sin Integrantes">
+                    Una vez creada la familia y vinculados sus integrantes desde la Lista de Invitados, podrás gestionar la asistencia de cada uno aquí.
+                  </Alert>
+                )}
+              </Stack>
+            </Tabs.Panel>
+          </Tabs>
+
+          <Group justify="flex-end" mt="lg">
+            <Button variant="outline" color="gray" onClick={closeModal}>
+              Cancelar
+            </Button>
+            <Button
+              style={{ backgroundColor: "#4A3F35", color: "#FFFFFF", fontWeight: 600 }}
+              type="submit"
+              loading={submitting}
+            >
+              {editingInvitation ? "Guardar Cambios" : "Crear Familia"}
+            </Button>
+          </Group>
         </form>
       </Modal>
 

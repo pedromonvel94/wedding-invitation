@@ -44,9 +44,10 @@ async function createGuest(
       message: "Invitado creado exitosamente",
     };
   } catch (error) {
+    console.error("❌ [CREATE GUEST ERROR]", error);
     return {
       success: false,
-      message: "Error al crear el invitado",
+      message: `Error al crear el invitado: ${(error as Error)?.message || error}`,
     };
   }
 }
@@ -150,20 +151,6 @@ async function updateGuest(
         });
         targetInvitationId = newInv.idInvitation;
       }
-
-      if (currentInvId && currentInvId !== targetInvitationId) {
-        const remainingCount = await prisma.guest.count({
-          where: { invitationId: currentInvId, idGuest: { not: idGuest } },
-        });
-        if (remainingCount === 0) {
-          await prisma.invitationDelivery.deleteMany({
-            where: { invitationId: currentInvId },
-          });
-          await prisma.invitation.delete({
-            where: { idInvitation: currentInvId },
-          });
-        }
-      }
     }
 
     const guest = await prisma.guest.update({
@@ -177,15 +164,31 @@ async function updateGuest(
       },
     });
 
+    // Limpiar la invitación anterior si quedó vacía (después de mover al invitado)
+    if (currentInvId && currentInvId !== targetInvitationId) {
+      const remainingCount = await prisma.guest.count({
+        where: { invitationId: currentInvId },
+      });
+      if (remainingCount === 0) {
+        await prisma.invitationDelivery.deleteMany({
+          where: { invitationId: currentInvId },
+        });
+        await prisma.invitation.delete({
+          where: { idInvitation: currentInvId },
+        });
+      }
+    }
+
     return {
       success: true,
       message: "Invitado actualizado",
       guest,
     };
   } catch (error) {
+    console.error("❌ [UPDATE GUEST ERROR]", error);
     return {
       success: false,
-      message: "Error al actualizar el invitado",
+      message: `Error al actualizar el invitado: ${(error as Error)?.message || error}`,
     };
   }
 }

@@ -44,7 +44,15 @@ api.interceptors.response.use(
       baseURL: error.config?.baseURL,
     });
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem("token");
+      const isLoginRequest = (error.config?.url || "").includes("/auth/");
+      if (!isLoginRequest) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("admin_user");
+        if (!window.location.pathname.startsWith("/admin/login")) {
+          alert("Tu sesión expiró. Por favor inicia sesión nuevamente.");
+          window.location.href = "/admin/login";
+        }
+      }
     }
     return Promise.reject(error);
   },

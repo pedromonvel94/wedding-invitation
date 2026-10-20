@@ -72,7 +72,7 @@ model Invitation {
 model Guest {
   idGuest Int @id @default(autoincrement())
   name String 
-  phoneNumber String @unique
+  phoneNumber String
   email String?
   side GuestSide @default(BOTH)
 
